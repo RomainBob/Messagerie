@@ -1,0 +1,5 @@
+<div [hidden]="service.isLogged()" class="login-form">
+  <label>Username: </label><br/>
+  <input class="login-input" type="text" [(ngModel)]="username" (keyup.enter)="send()"/>
+</div>
+

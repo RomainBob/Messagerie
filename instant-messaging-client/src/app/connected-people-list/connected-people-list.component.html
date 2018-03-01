@@ -1,0 +1,14 @@
+<div [hidden]="!service.isLogged()" class="connected-people-list">
+  <p>Liste des utilisateurs connectés</p>
+     <li *ngFor="let user of service.getUsers()">  
+     <b>{{user}}</b>
+     </li>
+</div>
+
+<!--
+<div [hidden]="!service.isLogged()" class="connected-people-list">
+  <p>Liste des utilisateurs connectés</p>
+     <app-connected-user *ngFor="let user of service.getUsers()" [user]="user"></app-connected-user> 
+</div>
+-->
+
