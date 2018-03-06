@@ -14,7 +14,7 @@ export class InstantMessagingService {
   }
 
   private onUserStatusChange(userslist: string []) {
-    //for (const username of userslist){
+    //for (const username of userslist)
     this.users = userslist;
     console.log(this.users);
   }

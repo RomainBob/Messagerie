@@ -7,8 +7,8 @@ import { InstantMessagingService } from '../instant-messaging.service';
   styleUrls: ['./connected-people-list.component.css']
 })
 export class ConnectedPeopleListComponent {
-  @Input()
-  user: string;
+  //@Input()
+  //user: string;
 
   constructor(private service: InstantMessagingService) { }
 
