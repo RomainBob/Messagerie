@@ -14,6 +14,8 @@ import { AutoScrollDirective } from './auto-scroll.directive';
 import { ConnectedPeopleListComponent } from './connected-people-list/connected-people-list.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ChatComponent } from './chat/chat.component';
+import { WelcomeComponent } from './welcome/welcome.component';
+import { SubscribeFormComponent } from './subscribe-form/subscribe-form.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,9 @@ import { ChatComponent } from './chat/chat.component';
     LoginFormComponent,
     AutoScrollDirective,
     ConnectedPeopleListComponent,
-    ChatComponent
+    ChatComponent,
+    WelcomeComponent,
+    SubscribeFormComponent
   ],
   imports: [
     BrowserModule,

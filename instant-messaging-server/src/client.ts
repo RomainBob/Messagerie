@@ -42,7 +42,7 @@ export class Client {
         if (!(typeof 'username' === 'string')) return;
         if (!this.usernameRegex.test(username)) return;
         this.username = username;
-        this.db.addLogin(username);
+        //this.db.addLogin(username);
         this.sendMessage('login', 'ok');
         this.server.broadcastUsersList();
         this.server.broadcastUserConnection('connection', username);

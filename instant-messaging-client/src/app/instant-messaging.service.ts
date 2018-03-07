@@ -72,7 +72,7 @@ export class InstantMessagingService {
     return (this.logged);
   }
 
-  public sendUsername(username: string) {
+  public sendUsername(username: string, password: string) {
     this.sendMessage('username', username);
   }
 }

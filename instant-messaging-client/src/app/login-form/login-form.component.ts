@@ -10,11 +10,12 @@ import { Location } from '@angular/common';
 })
 export class LoginFormComponent {
   private username = '';
+  private password = '';
 
   constructor(private service: InstantMessagingService, private location: Location) { }
 
   private send(): void {
-    this.service.sendUsername(this.username);
+    this.service.sendUsername(this.username, this.password);
   }
 
   private goBack(): void {

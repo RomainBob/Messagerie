@@ -1,17 +1,3 @@
-<!--/*<div>
-  <app-instant-message *ngFor="let message of service.getMessages()" 
-                [message]="message"></app-instant-message>
-</div>
-
-
-
-<div appAutoScroll [hidden]="!service.isLogged()" class="message-list">
-  <app-instant-message *ngFor="let message of service.getMessages()" 
-                [message]="message"></app-instant-message>
-</div>
-
--->
-
 <div appAutoScroll class="message-list">
   <app-instant-message *ngFor="let message of service.getMessages()" 
                 [message]="message"></app-instant-message>
