@@ -7,6 +7,7 @@ import { InstantMessagingService } from '../instant-messaging.service';
   templateUrl: './message-list.component.html',
   styleUrls: ['./message-list.component.css']
 })
+
 export class MessageListComponent {
   constructor(private service: InstantMessagingService) { }
 }

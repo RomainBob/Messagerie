@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-//import { InstantMessage } from './instant-message';
 
 @Component({
   selector: 'app-root',
@@ -8,12 +7,5 @@ import { Component } from '@angular/core';
 })
 
 export class AppComponent {
-  /*
-  private messages: InstantMessage[] = [];
-
-  private sendMessage(content: string) {
-    const message = new InstantMessage(content, 'Bob', new Date());
-    this.messages.push(message);
-  }
-  */
+  constructor() { }
 }

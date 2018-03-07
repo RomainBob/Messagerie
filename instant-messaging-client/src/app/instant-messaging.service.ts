@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { InstantMessage } from './instant-message';
+import { RoutingService } from './routing.service';
+
 
 @Injectable()
 export class InstantMessagingService {
@@ -14,11 +16,10 @@ export class InstantMessagingService {
   }
 
   private onUserStatusChange(userslist: string []) {
-    //for (const username of userslist)
     this.users = userslist;
     console.log(this.users);
   }
-  
+
   private onConnection(username: string) {
     this.messages.push(new InstantMessage(username + ' vient de rejoindre la conversation', 'Message Automatique', new Date()));
   }
@@ -27,23 +28,22 @@ export class InstantMessagingService {
     this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
   }
 
-
   private onMessage(data: string) {
     const message = JSON.parse(data);
     switch (message.type) {
       case 'instant_message': this.onInstantMessage(message.data); break;
       case 'login': this.onLogin(); break;
+      case 'loginAlreadyExists': this.routing.goError(); break;
       case 'users_list': this.onUserStatusChange(message.data); break;
       case 'connection': this.onConnection(message.data); break;
       case 'disconnection': this.onDisconnection(message.data); break;
     }
   }
 
-  public constructor() {
+  public constructor(private routing: RoutingService) {
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
-    this.socket.onmessage =
-      (event: MessageEvent) => this.onMessage(event.data);
+    this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
   }
 
   public getMessages(): InstantMessage[] {
@@ -65,10 +65,11 @@ export class InstantMessagingService {
 
   private onLogin() {
     this.logged = true;
-  }
+    this.routing.goChat();
+   }
 
   public isLogged(): boolean {
-    return this.logged;
+    return (this.logged);
   }
 
   public sendUsername(username: string) {

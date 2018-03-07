@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Client {
-    constructor(server, connection) {
+    constructor(server, connection, db) {
         this.server = server;
         this.connection = connection;
+        this.db = db;
         this.usernameRegex = /^[a-zA-Z0-9]*$/;
         this.username = null;
         connection.on('message', (message) => this.onMessage(message.utf8Data));
@@ -39,6 +40,7 @@ class Client {
         if (!this.usernameRegex.test(username))
             return;
         this.username = username;
+        this.db.addLogin(username);
         this.sendMessage('login', 'ok');
         this.server.broadcastUsersList();
         this.server.broadcastUserConnection('connection', username);

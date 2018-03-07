@@ -4,7 +4,8 @@ const websocket_1 = require("websocket");
 const http = require("http");
 const client_1 = require("./client");
 class Server {
-    constructor(port) {
+    constructor(port, db) {
+        this.db = db;
         this.clients = [];
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
@@ -62,7 +63,7 @@ class Server {
     }
     onWebSocketRequest(request) {
         const connection = request.accept(null, request.origin);
-        const client = new client_1.Client(this, connection);
+        const client = new client_1.Client(this, connection, this.db);
         this.clients.push(client);
     }
     removeClient(client) {

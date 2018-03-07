@@ -1,2 +1,5 @@
 import { Server } from "./server";
-new Server(4201);
+import { Db } from "./db";
+var db = new Db;
+new Server(4201, db);
+

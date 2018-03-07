@@ -8,9 +8,12 @@ import { MessageListComponent } from './message-list/message-list.component';
 import { InstantMessageComponent } from './instant-message/instant-message.component';
 import { NewMessageFormComponent } from './new-message-form/new-message-form.component';
 import { InstantMessagingService } from './instant-messaging.service';
+import { RoutingService } from './routing.service';
 import { LoginFormComponent } from './login-form/login-form.component';
 import { AutoScrollDirective } from './auto-scroll.directive';
 import { ConnectedPeopleListComponent } from './connected-people-list/connected-people-list.component';
+import { AppRoutingModule } from './app-routing.module';
+import { ChatComponent } from './chat/chat.component';
 
 @NgModule({
   declarations: [
@@ -20,14 +23,19 @@ import { ConnectedPeopleListComponent } from './connected-people-list/connected-
     NewMessageFormComponent,
     LoginFormComponent,
     AutoScrollDirective,
-    ConnectedPeopleListComponent
+    ConnectedPeopleListComponent,
+    ChatComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
+    AppRoutingModule
   ],
-  providers: [InstantMessagingService],
+  providers: [
+    InstantMessagingService,
+    RoutingService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

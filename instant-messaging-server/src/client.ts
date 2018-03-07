@@ -1,11 +1,12 @@
 import {connection as WebSocketConnection} from 'websocket';
 import { Server } from "./server";
+import { Db } from "./db";
 
 export class Client {
     private usernameRegex = /^[a-zA-Z0-9]*$/;
     private username: string = null;
 
-    public constructor(private server: Server, private connection: WebSocketConnection) {
+    public constructor(private server: Server, private connection: WebSocketConnection, private db: Db) {
         connection.on('message', (message)=>this.onMessage(message.utf8Data));
         connection.on('close', ()=>server.removeClient(this));
         connection.on('close', ()=>server.broadcastUsersList());
@@ -41,6 +42,7 @@ export class Client {
         if (!(typeof 'username' === 'string')) return;
         if (!this.usernameRegex.test(username)) return;
         this.username = username;
+        this.db.addLogin(username);
         this.sendMessage('login', 'ok');
         this.server.broadcastUsersList();
         this.server.broadcastUserConnection('connection', username);

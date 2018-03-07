@@ -1,5 +1,11 @@
-<div [hidden]="service.isLogged()" class="login-form">
-  <label>Username: </label><br/>
+<div class="login-form">
+  <label>Login: </label><br/>
   <input class="login-input" type="text" [(ngModel)]="username" (keyup.enter)="send()"/>
+  <div>
+    <p></p>
+    <button (click)="goBack()">Annuler</button>
+    <button (click)="send()">Valider</button>
+  </div>
 </div>
+
 

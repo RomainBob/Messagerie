@@ -1,14 +1,16 @@
 import {server as WebSocketServer, connection as WebSocketConnection} from 'websocket';
 import * as http from 'http';
 import { Client } from "./client";
+import { Db } from "./db";
 
 export class Server {
     private clients: Client[] = []
-
-    public constructor(port: number) {
+    
+    public constructor(port: number, private db: Db) {
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }
+   
     
     public broadcastInstantMessage(content: string, author: string): void {
         const date = new Date();
@@ -63,7 +65,7 @@ export class Server {
 
     private onWebSocketRequest(request): void {
         const connection = request.accept(null, request.origin);
-        const client = new Client(this, connection);
+        const client = new Client(this, connection, this.db);
         this.clients.push(client);
     }
 
