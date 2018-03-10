@@ -1,17 +1,17 @@
 import {server as WebSocketServer, connection as WebSocketConnection} from 'websocket';
 import * as http from 'http';
 import { Client } from "./client";
-import { Db } from "./db";
+import { DbModel } from "./dbModel";
 
 export class Server {
     private clients: Client[] = []
-    
-    public constructor(port: number, private db: Db) {
+    db: DbModel = new DbModel();
+        
+    public constructor(port: number) {
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }
-   
-    
+       
     public broadcastInstantMessage(content: string, author: string): void {
         const date = new Date();
         for (const client of this.clients) {
@@ -72,5 +72,4 @@ export class Server {
     removeClient(client: Client) {
         this.clients.splice(this.clients.indexOf(client), 1);
     }
-
 }

@@ -15,7 +15,7 @@ export class LoginFormComponent {
   constructor(private service: InstantMessagingService, private location: Location) { }
 
   private send(): void {
-    this.service.sendUsername(this.username, this.password);
+    this.service.sendLogin(this.username, this.password);
   }
 
   private goBack(): void {

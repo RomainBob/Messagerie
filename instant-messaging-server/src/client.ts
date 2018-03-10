@@ -1,12 +1,12 @@
 import {connection as WebSocketConnection} from 'websocket';
 import { Server } from "./server";
-import { Db } from "./db";
+import { DbModel } from "./dbModel";
 
 export class Client {
     private usernameRegex = /^[a-zA-Z0-9]*$/;
     private username: string = null;
 
-    public constructor(private server: Server, private connection: WebSocketConnection, private db: Db) {
+    public constructor(private server: Server, private connection: WebSocketConnection, private db: DbModel) {
         connection.on('message', (message)=>this.onMessage(message.utf8Data));
         connection.on('close', ()=>server.removeClient(this));
         connection.on('close', ()=>server.broadcastUsersList());
@@ -52,7 +52,7 @@ export class Client {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
             case 'instant_message': this.onInstantMessage(message.data); break;
-            case 'username': this.onUsername(message.data); break;
+            case 'username': this.onUsername(message.data.username); break;
         }
     }
 

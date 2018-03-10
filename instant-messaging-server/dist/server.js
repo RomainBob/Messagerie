@@ -3,10 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const websocket_1 = require("websocket");
 const http = require("http");
 const client_1 = require("./client");
+const dbModel_1 = require("./dbModel");
 class Server {
-    constructor(port, db) {
-        this.db = db;
+    constructor(port) {
         this.clients = [];
+        this.db = new dbModel_1.DbModel();
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }

@@ -1,15 +1,15 @@
-<form name="myForm" ng-submit="foo()" novalidate>
-    <label>Prénom : </label>
-    <input name="prenom" type="text" required ng-minlength="2" ng-maxlength="20" />
-    
-    <label>Nom : </label>
-    <input name="nom" type="text" ng-maxlength="30" />
-    
-    <label>E-mail : </label>
-    <input name="mail" type="email" required />
-    
-    <label>Âge : </label>
-    <input name="age" type="number" required />
-    
-    <input type="submit" value="Envoyer" />
-</form>
+<div class="subscription-form">
+  <label>Nom d'utilisateur</label>
+  <input class="login-input" type="text" [(ngModel)]="username"/>
+  <p></p>
+  <label>Mot de passe:</label>
+  <input class="password-input" type="password" [(ngModel)]="password"/>
+  <p></p>
+  <label>Adresse mail:</label>
+  <input class="mail-input" type="email" [(ngModel)]="mail"/>
+  <div>
+    <p></p>
+    <button (click)="goBack()">Annuler</button>
+    <button (click)="send()">Valider</button>
+  </div>
+</div>

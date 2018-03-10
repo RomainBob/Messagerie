@@ -52,7 +52,7 @@ class Client {
                 this.onInstantMessage(message.data);
                 break;
             case 'username':
-                this.onUsername(message.data);
+                this.onUsername(message.data.username);
                 break;
         }
     }
