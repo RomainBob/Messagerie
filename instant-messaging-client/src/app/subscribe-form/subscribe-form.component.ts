@@ -15,6 +15,11 @@ export class SubscribeFormComponent {
 
   constructor(private service: InstantMessagingService, private location: Location) { }
 
+  onSubmit() {
+    console.log(this.username + this.password + this.mail);
+    this.send();
+  }
+
   private send(): void {
     this.service.sendSubscription(this.username, this.password, this.mail);
   }

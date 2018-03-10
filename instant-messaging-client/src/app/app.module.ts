@@ -17,6 +17,7 @@ import { ChatComponent } from './chat/chat.component';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { SubscribeFormComponent } from './subscribe-form/subscribe-form.component';
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -34,7 +35,7 @@ import { SubscribeFormComponent } from './subscribe-form/subscribe-form.componen
     BrowserModule,
     FormsModule,
     HttpModule,
-    AppRoutingModule
+    AppRoutingModule,
   ],
   providers: [
     InstantMessagingService,
