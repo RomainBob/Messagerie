@@ -9,6 +9,7 @@ export class InstantMessagingService {
   private users: string [] = [];
   private socket: WebSocket;
   private logged: boolean;
+  private errorMessage: string;
 
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
@@ -32,8 +33,7 @@ export class InstantMessagingService {
     const message = JSON.parse(data);
     switch (message.type) {
       case 'instant_message': this.onInstantMessage(message.data); break;
-      case 'login': this.onLogin(); break;
-      case 'loginAlreadyExists': this.routing.goError(); break;
+      case 'login': this.onLogin(message.data); break;
       case 'users_list': this.onUserStatusChange(message.data); break;
       case 'connection': this.onConnection(message.data); break;
       case 'disconnection': this.onDisconnection(message.data); break;
@@ -54,6 +54,10 @@ export class InstantMessagingService {
     return this.users;
   }
 
+  public getErrorMessage(): string {
+    return this.errorMessage;
+  }
+
   public sendMessage(type: string, data: any) {
     const message = {type: type, data: data};
     this.socket.send(JSON.stringify(message));
@@ -63,17 +67,22 @@ export class InstantMessagingService {
     this.sendMessage('instant_message', content);
   }
 
-  private onLogin() {
-    this.logged = true;
-    this.routing.goChat();
-   }
+  private onLogin(state: string) {
+    if (state === 'ok') {
+      this.logged = true;
+      this.routing.goChat();
+    } else {
+      this.errorMessage = 'Login non reconnu ou mot de passe incorrect';
+      this.routing.goError();
+    }
+  }
 
   public isLogged(): boolean {
     return (this.logged);
   }
 
   public sendLogin(username: string, password: string) {
-    this.sendMessage('username', {username: username, password: password});
+    this.sendMessage('userLogin', {username: username, password: password});
   }
 
   public sendSubscription(username: string, password: string, mail: string) {

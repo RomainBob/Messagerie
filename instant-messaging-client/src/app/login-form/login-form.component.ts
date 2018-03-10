@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { InstantMessagingService } from 'app/instant-messaging.service';
 import { Location } from '@angular/common';
 
@@ -11,6 +11,9 @@ import { Location } from '@angular/common';
 export class LoginFormComponent {
   private username = '';
   private password = '';
+
+  @Input()
+  errorLogin: string;
 
   constructor(private service: InstantMessagingService, private location: Location) { }
 

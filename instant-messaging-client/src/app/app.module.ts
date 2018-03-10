@@ -16,6 +16,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { ChatComponent } from './chat/chat.component';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { SubscribeFormComponent } from './subscribe-form/subscribe-form.component';
+import { ErrorComponent } from './error/error.component';
+import { ErrorMessageComponent } from './error-message/error-message.component';
 
 
 @NgModule({
@@ -29,7 +31,9 @@ import { SubscribeFormComponent } from './subscribe-form/subscribe-form.componen
     ConnectedPeopleListComponent,
     ChatComponent,
     WelcomeComponent,
-    SubscribeFormComponent
+    SubscribeFormComponent,
+    ErrorComponent,
+    ErrorMessageComponent
   ],
   imports: [
     BrowserModule,

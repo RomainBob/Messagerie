@@ -34,7 +34,7 @@ class Client {
             return;
         this.server.broadcastInstantMessage(content, this.username);
     }
-    onUsername(username) {
+    onUserLogin(username) {
         if (!(typeof 'username' === 'string'))
             return;
         if (!this.usernameRegex.test(username))
@@ -50,8 +50,8 @@ class Client {
             case 'instant_message':
                 this.onInstantMessage(message.data);
                 break;
-            case 'username':
-                this.onUsername(message.data.username);
+            case 'userLogin':
+                this.onUserLogin(message.data.username);
                 break;
         }
     }
