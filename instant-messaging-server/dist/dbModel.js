@@ -17,9 +17,34 @@ class DbModel {
             .then((db) => this.database = db.db('dbMessagerie'))
             .catch((reason) => console.log(reason));
     }
-    addMessage(message) {
+    addUser(username, password, mail) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.database.collection('messages').insertOne({ message: message });
+            yield this.database.collection('users')
+                .insertOne({ username: username, password: password, mail: mail });
+        });
+    }
+    checkIfUserExists(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const i = yield this.database.collection('users').find({ username: username }).count();
+            return i;
+        });
+    }
+    checkIfPasswordMatches(username, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const i = yield this.database.collection('users').find({ username: username, password: password }).count();
+            //console.log('message returned:'+ i[0].username);
+            return i;
+        });
+    }
+    checkIfMailExists(mail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const i = yield this.database.collection('users').find({ mail: mail }).count();
+            return i;
+        });
+    }
+    addMessage(content, author, date) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.database.collection('messages').insertOne({ content: content, author: author, date: date });
         });
     }
     message() {

@@ -37,6 +37,7 @@ export class InstantMessagingService {
       case 'users_list': this.onUserStatusChange(message.data); break;
       case 'connection': this.onConnection(message.data); break;
       case 'disconnection': this.onDisconnection(message.data); break;
+      case 'subscription': this.onSubscription(message.data); break;
     }
   }
 
@@ -72,7 +73,21 @@ export class InstantMessagingService {
       this.logged = true;
       this.routing.goChat();
     } else {
-      this.errorMessage = 'Login non reconnu ou mot de passe incorrect';
+      this.errorMessage = state;
+      this.routing.goError();
+    }
+  }
+
+  private onSubscription(state: string) {
+    if ( state === 'ok') {
+      this.routing.goLogin();
+    } else if (state === 'Pseudo déjà utilisé') {
+      this.errorMessage = state;
+      this.routing.goError();
+    } else if (state === 'Compte déjà existant') {
+      this.errorMessage = state;
+      this.routing.goError();
+    } else {
       this.routing.goError();
     }
   }
@@ -86,6 +101,6 @@ export class InstantMessagingService {
   }
 
   public sendSubscription(username: string, password: string, mail: string) {
-    this.sendMessage('subscription', {username: username, password: password, mail: mail});
+    this.sendMessage('userSubscription', {username: username, password: password, mail: mail});
   }
 }

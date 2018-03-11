@@ -14,4 +14,8 @@ export class RoutingService {
     this.router.navigate(['/error']);
   }
 
+  goLogin() {
+    this.router.navigate(['/login']);
+  }
+
 }
