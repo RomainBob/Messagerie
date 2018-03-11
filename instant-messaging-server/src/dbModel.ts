@@ -18,5 +18,6 @@ export class DbModel {
     async message(): Promise <string[]> {
       return this.database.collection('messages').find().toArray();
     }
+
 }
 

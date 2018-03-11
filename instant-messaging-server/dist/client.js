@@ -34,12 +34,13 @@ class Client {
             return;
         this.server.broadcastInstantMessage(content, this.username);
     }
-    onUserLogin(username) {
+    onUsername(username) {
         if (!(typeof 'username' === 'string'))
             return;
         if (!this.usernameRegex.test(username))
             return;
         this.username = username;
+        //this.db.addLogin(username);
         this.sendMessage('login', 'ok');
         this.server.broadcastUsersList();
         this.server.broadcastUserConnection('connection', username);
@@ -50,8 +51,8 @@ class Client {
             case 'instant_message':
                 this.onInstantMessage(message.data);
                 break;
-            case 'userLogin':
-                this.onUserLogin(message.data.username);
+            case 'username':
+                this.onUsername(message.data.username);
                 break;
         }
     }

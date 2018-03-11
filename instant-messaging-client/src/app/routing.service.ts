@@ -11,7 +11,7 @@ export class RoutingService {
   }
 
   goError() {
-    this.router.navigate(['/error']);
+    this.router.navigate(['/chat']);
   }
 
 }
