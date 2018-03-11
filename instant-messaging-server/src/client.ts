@@ -32,10 +32,10 @@ export class Client {
         this.sendMessage(connection, username);
     }
 
-    private onInstantMessage(content): void {
+    private onInstantMessage(content: string, participants: string[]): void {
         if (!(typeof 'content' === 'string')) return;
         if (this.username==null) return;
-        this.server.broadcastInstantMessage(content, this.username);
+        this.server.broadcastInstantMessage(content, this.username, participants);
     }
 
     private onUserLogin(username) {
@@ -50,7 +50,7 @@ export class Client {
     private onMessage(utf8Data: string): void {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
-            case 'instant_message': this.onInstantMessage(message.data); break;
+            case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
             case 'userLogin': this.onUserLogin(message.data.username); break;
         }
     }

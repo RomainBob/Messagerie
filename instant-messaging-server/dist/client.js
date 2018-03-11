@@ -27,12 +27,12 @@ class Client {
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
     }
-    onInstantMessage(content) {
+    onInstantMessage(content, participants) {
         if (!(typeof 'content' === 'string'))
             return;
         if (this.username == null)
             return;
-        this.server.broadcastInstantMessage(content, this.username);
+        this.server.broadcastInstantMessage(content, this.username, participants);
     }
     onUserLogin(username) {
         if (!(typeof 'username' === 'string'))
@@ -48,7 +48,7 @@ class Client {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
             case 'instant_message':
-                this.onInstantMessage(message.data);
+                this.onInstantMessage(message.data.content, message.data.participants);
                 break;
             case 'userLogin':
                 this.onUserLogin(message.data.username);

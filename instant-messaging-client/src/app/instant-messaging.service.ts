@@ -10,10 +10,11 @@ export class InstantMessagingService {
   private socket: WebSocket;
   private logged: boolean;
   private errorMessage: string;
+  private participants = ['toto', 'titi'];//this.users; // liste des destinataires temporairement étendue à tous les utilisateurs connectés
 
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
-    console.log('nouveau message');
+    console.log('nouveau message' + this.participants[0]);
   }
 
   private onUserStatusChange(userslist: string []) {
@@ -64,7 +65,8 @@ export class InstantMessagingService {
   }
 
   public sendInstantMessage(content: string) {
-    this.sendMessage('instant_message', content);
+    const privateMessage = {content : content, participants : this.participants}
+    this.sendMessage('instant_message', privateMessage);
   }
 
   private onLogin(state: string) {

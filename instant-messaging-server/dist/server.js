@@ -11,10 +11,11 @@ class Server {
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }
-    broadcastInstantMessage(content, author) {
+    broadcastInstantMessage(content, author, participants) {
         const date = new Date();
         for (const client of this.clients) {
-            client.sendInstantMessage(content, author, date);
+            if (!(participants.indexOf(client.getUserName()) === -1))
+                client.sendInstantMessage(content, author, date);
         }
     }
     broadcastUsersList() {
