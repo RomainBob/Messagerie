@@ -38,10 +38,11 @@ export class Client {
         this.server.broadcastInstantMessage(content, this.username);
     }
 
-    private onUserLogin(username) {
+    private onUsername(username) {
         if (!(typeof 'username' === 'string')) return;
         if (!this.usernameRegex.test(username)) return;
         this.username = username;
+        //this.db.addLogin(username);
         this.sendMessage('login', 'ok');
         this.server.broadcastUsersList();
         this.server.broadcastUserConnection('connection', username);
@@ -51,7 +52,7 @@ export class Client {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
             case 'instant_message': this.onInstantMessage(message.data); break;
-            case 'userLogin': this.onUserLogin(message.data.username); break;
+            case 'username': this.onUsername(message.data.username); break;
         }
     }
 
