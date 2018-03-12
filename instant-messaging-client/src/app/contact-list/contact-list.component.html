@@ -1,0 +1,5 @@
+<div class="contacts">
+    <p>Liste des Contacts</p>
+       <app-contact *ngFor="let contact of service.getContacts()" [contact]="contact">  
+       </app-contact>
+</div>
