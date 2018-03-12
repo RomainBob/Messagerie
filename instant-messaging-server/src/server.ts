@@ -26,6 +26,20 @@ export class Server {
         }
       }
 
+    public broadcastInvitation (dest: string, username: string){
+        for(const client of this.clients){
+            if(client.getUserName()===dest)
+                client.sendInvitation(dest, username);
+        }
+    }
+    
+    public broadcastContact ( username: string){
+        for(const client of this.clients){
+            if(client.getUserName()===username)
+                client.sendContact( username);
+        }
+    }
+
     public broadcastUserConnection(connection: string, username: string): void {
         switch (connection) {
             case 'connection': for (const client of this.clients) {

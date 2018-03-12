@@ -24,6 +24,13 @@ class Client {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
     }
+    sendInvitation(dest, username) {
+        const invitation = [dest, username];
+        this.sendMessage('invitation', invitation);
+    }
+    sendContact(contact) {
+        this.sendMessage('contact', contact);
+    }
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
     }
@@ -33,6 +40,17 @@ class Client {
         if (this.username == null)
             return;
         this.server.broadcastInstantMessage(content, this.username, participants);
+    }
+    onInvitation(dest) {
+        if (!(typeof 'dest' === 'string'))
+            return;
+        if (!this.usernameRegex.test(dest))
+            return;
+        this.server.broadcastInvitation(dest, this.username);
+    }
+    onContact(username) {
+        this.username = username;
+        this.server.broadcastContact(username);
     }
     onUserLogin(username) {
         if (!(typeof 'username' === 'string'))
@@ -53,6 +71,10 @@ class Client {
             case 'userLogin':
                 this.onUserLogin(message.data.username);
                 break;
+            case 'invitation':
+                this.onInvitation(message.data);
+                break;
+            case 'contact': this.onContact(message.data);
         }
     }
     getUserName() {

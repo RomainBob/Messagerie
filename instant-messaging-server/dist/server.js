@@ -23,6 +23,18 @@ class Server {
             client.sendUsersList(this.getClientsList());
         }
     }
+    broadcastInvitation(dest, username) {
+        for (const client of this.clients) {
+            if (client.getUserName() === dest)
+                client.sendInvitation(dest, username);
+        }
+    }
+    broadcastContact(username) {
+        for (const client of this.clients) {
+            if (client.getUserName() === username)
+                client.sendContact(username);
+        }
+    }
     broadcastUserConnection(connection, username) {
         switch (connection) {
             case 'connection':
