@@ -12,10 +12,11 @@ export class Server {
         this.addWebSocketServer(server);
     }
        
-    public broadcastInstantMessage(content: string, author: string): void {
+    public broadcastInstantMessage(content: string, author: string, participants: string[]): void {
         const date = new Date();
         for (const client of this.clients) {
-          client.sendInstantMessage(content, author, date);
+            if (!(participants.indexOf(client.getUserName())===-1))
+              client.sendInstantMessage(content, author, date);
         }
       }
     
@@ -24,6 +25,20 @@ export class Server {
           client.sendUsersList(this.getClientsList());
         }
       }
+
+    public broadcastInvitation (dest: string, username: string){
+        for(const client of this.clients){
+            if(client.getUserName()===dest)
+                client.sendInvitation(dest, username);
+        }
+    }
+    
+    public broadcastContact ( username: string){
+        for(const client of this.clients){
+            if(client.getUserName()===username)
+                client.sendContact( username);
+        }
+    }
 
     public broadcastUserConnection(connection: string, username: string): void {
         switch (connection) {
@@ -43,6 +58,7 @@ export class Server {
         }
         return usersList;
     }
+    
 
     private createAndRunHttpServer(port: number): http.Server {
         const server = http.createServer(function(request, response) {

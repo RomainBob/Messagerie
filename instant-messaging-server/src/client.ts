@@ -28,14 +28,34 @@ export class Client {
         this.sendMessage('instant_message', instantMessage);
     }
 
+    public sendInvitation(dest : string, username: string){
+        const invitation:string[] = [dest, username];
+        this.sendMessage('invitation', invitation);
+    }
+
+    public sendContact(contact: string){
+        this.sendMessage('contact', contact);
+    }
+    
     public sendUserConnection(connection: string, username: string){
         this.sendMessage(connection, username);
     }
 
-    private onInstantMessage(content): void {
+    private onInstantMessage(content: string, participants: string[]): void {
         if (!(typeof 'content' === 'string')) return;
         if (this.username==null) return;
-        this.server.broadcastInstantMessage(content, this.username);
+        this.server.broadcastInstantMessage(content, this.username, participants);
+    }
+
+    private onInvitation(dest){
+        if (!(typeof 'dest' === 'string')) return;
+        if (!this.usernameRegex.test(dest)) return;
+        this.server.broadcastInvitation(dest, this.username);
+    }
+    
+    private onContact(username){
+        this.username = username;
+        this.server.broadcastContact(username);
     }
 
     private onUserLogin(username) {
@@ -50,9 +70,11 @@ export class Client {
     private onMessage(utf8Data: string): void {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
-            case 'instant_message': this.onInstantMessage(message.data); break;
+            case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
             case 'userLogin': this.onUserLogin(message.data.username); break;
-        }
+            case 'invitation': this.onInvitation(message.data); break;
+            case 'contact': this.onContact(message.data);
+       }
     }
 
     public getUserName(){

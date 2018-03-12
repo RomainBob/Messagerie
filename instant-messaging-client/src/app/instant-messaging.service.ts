@@ -10,6 +10,10 @@ export class InstantMessagingService {
   private socket: WebSocket;
   private logged: boolean;
   private errorMessage: string;
+  private participants: string [] = [];
+  private invitations: string[] = [];  
+  private contacts: string []= [];
+
 
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
@@ -29,6 +33,16 @@ export class InstantMessagingService {
     this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
   }
 
+  private onInvitation(invitation: string[]) {
+    this.invitations.push(invitation[1]);
+    console.log(this.invitations);
+  }
+
+ public  onContact(contact: string  ) {
+    this.contacts.push(contact);
+    console.log(this.contacts);
+  }
+
   private onMessage(data: string) {
     const message = JSON.parse(data);
     switch (message.type) {
@@ -37,6 +51,9 @@ export class InstantMessagingService {
       case 'users_list': this.onUserStatusChange(message.data); break;
       case 'connection': this.onConnection(message.data); break;
       case 'disconnection': this.onDisconnection(message.data); break;
+      case 'invitation': this.onInvitation(message.data); break;
+      case 'contact': this.onContact(message.data); break;
+
     }
   }
 
@@ -44,6 +61,11 @@ export class InstantMessagingService {
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
     this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
+  }
+
+  public removeInvitation(invitation: string) {
+    const index = this.invitations.indexOf(invitation);
+    this.invitations.splice(index, 1);
   }
 
   public getMessages(): InstantMessage[] {
@@ -58,13 +80,30 @@ export class InstantMessagingService {
     return this.errorMessage;
   }
 
+  public getInvitations(): string[] {
+    return this.invitations;
+  }
+
+  public getContacts(): string[] {
+    return this.contacts;
+  }
+
   public sendMessage(type: string, data: any) {
     const message = {type: type, data: data};
     this.socket.send(JSON.stringify(message));
   }
 
   public sendInstantMessage(content: string) {
-    this.sendMessage('instant_message', content);
+    this.participants = this.users;   // liste des destinataires temporairement étendue à tous les utilisateurs connectés
+    const privateMessage = {content : content, participants : this.participants}
+    this.sendMessage('instant_message', privateMessage);
+  }
+
+  public sendInvitation(invitation: string) {
+    this.sendMessage('invitation', invitation);
+  }
+  public sendContact(contact: string) {
+    this.sendMessage('contact', contact);
   }
 
   private onLogin(state: string) {

@@ -18,6 +18,10 @@ import { WelcomeComponent } from './welcome/welcome.component';
 import { SubscribeFormComponent } from './subscribe-form/subscribe-form.component';
 import { ErrorComponent } from './error/error.component';
 import { ErrorMessageComponent } from './error-message/error-message.component';
+import { InstantInvitationComponent } from './instant-invitation/instant-invitation.component';
+import { InvitationListComponent } from './invitation-list/invitation-list.component';
+import { InvitationFormComponent } from './invitation-form/invitation-form.component';
+import { ContactListComponent } from './contact-list/contact-list.component';
 
 
 @NgModule({
@@ -33,7 +37,11 @@ import { ErrorMessageComponent } from './error-message/error-message.component';
     WelcomeComponent,
     SubscribeFormComponent,
     ErrorComponent,
-    ErrorMessageComponent
+    ErrorMessageComponent,
+    InstantInvitationComponent,
+    InvitationListComponent,
+    InvitationFormComponent,
+    ContactListComponent
   ],
   imports: [
     BrowserModule,

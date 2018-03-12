@@ -11,15 +11,28 @@ class Server {
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }
-    broadcastInstantMessage(content, author) {
+    broadcastInstantMessage(content, author, participants) {
         const date = new Date();
         for (const client of this.clients) {
-            client.sendInstantMessage(content, author, date);
+            if (!(participants.indexOf(client.getUserName()) === -1))
+                client.sendInstantMessage(content, author, date);
         }
     }
     broadcastUsersList() {
         for (const client of this.clients) {
             client.sendUsersList(this.getClientsList());
+        }
+    }
+    broadcastInvitation(dest, username) {
+        for (const client of this.clients) {
+            if (client.getUserName() === dest)
+                client.sendInvitation(dest, username);
+        }
+    }
+    broadcastContact(username) {
+        for (const client of this.clients) {
+            if (client.getUserName() === username)
+                client.sendContact(username);
         }
     }
     broadcastUserConnection(connection, username) {
