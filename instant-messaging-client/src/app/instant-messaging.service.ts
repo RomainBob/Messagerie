@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { InstantMessage } from './instant-message';
 import { RoutingService } from './routing.service';
+import { Discussion } from './discussion'
 
 
 @Injectable()
@@ -13,7 +14,31 @@ export class InstantMessagingService {
   private participants: string [] = [];
   private invitations: string[] = [];
   private contacts: string []= [];
+  private currentDiscussionId: number;
+  private discussions: Discussion[];
+
+  private askDiscussion(contact: string) {
+    //this.participants = [];
+    //this.participants = [contact];
+    for (const discussion of this.discussions) {
+      if (discussion.participants.length === 1  && !(discussion.participants.indexOf(contact) === -1)){
+        this.currentDiscussionId =  discussion.id;
+        this.sendFetchDiscussion();//  récupère la première discussion correspondante
+        break;
+      }
+      if (discussion.id === this.discussions[this.discussions.length - 1].id) {
+        this.sendCreateDiscussion(contact); // crée la discussion
+      }
+    }
+  }
+
+  private sendFetchDiscussion(){
+  //envoyer this.currentDiscussionId
+  }
+  
+  private sendCreateDiscussion(contact: string){
  
+  }
 
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
