@@ -48,8 +48,8 @@ class Client {
         return __awaiter(this, void 0, void 0, function* () {
             const i = yield this.db.checkIfUserExists(username);
             if (i === 1) {
-                const j = yield this.db.checkIfPasswordMatches(username, password);
-                if (j === 0) {
+                const verifyPassword = yield this.db.verifyPasswordWithHashCode(username, password);
+                if (!verifyPassword) {
                     this.sendMessage('login', 'Mot de passe incorrect');
                     return;
                 }

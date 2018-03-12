@@ -43,8 +43,8 @@ export class Client {
     async onUserLogin(username, password) {
         const i = await this.db.checkIfUserExists(username);
         if (i === 1 ){ 
-            const j = await this.db.checkIfPasswordMatches(username, password);  
-            if (j === 0 ){
+            const verifyPassword = await this.db.verifyPasswordWithHashCode (username, password);  
+            if (!verifyPassword){
                 this.sendMessage('login', 'Mot de passe incorrect');
                 return;
             } else {
