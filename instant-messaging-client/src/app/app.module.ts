@@ -22,6 +22,7 @@ import { InstantInvitationComponent } from './instant-invitation/instant-invitat
 import { InvitationListComponent } from './invitation-list/invitation-list.component';
 import { InvitationFormComponent } from './invitation-form/invitation-form.component';
 import { ContactListComponent } from './contact-list/contact-list.component';
+import { ContactComponent } from './contact/contact.component';
 
 
 @NgModule({
@@ -41,7 +42,8 @@ import { ContactListComponent } from './contact-list/contact-list.component';
     InstantInvitationComponent,
     InvitationListComponent,
     InvitationFormComponent,
-    ContactListComponent
+    ContactListComponent,
+    ContactComponent
   ],
   imports: [
     BrowserModule,

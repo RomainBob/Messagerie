@@ -11,9 +11,9 @@ export class InstantMessagingService {
   private logged: boolean;
   private errorMessage: string;
   private participants: string [] = [];
-  private invitations: string[] = [];  
+  private invitations: string[] = [];
   private contacts: string []= [];
-
+ 
 
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
