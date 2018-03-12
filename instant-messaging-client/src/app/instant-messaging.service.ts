@@ -81,13 +81,8 @@ export class InstantMessagingService {
   private onSubscription(state: string) {
     if ( state === 'ok') {
       this.routing.goLogin();
-    } else if (state === 'Pseudo déjà utilisé') {
-      this.errorMessage = state;
-      this.routing.goError();
-    } else if (state === 'Compte déjà existant') {
-      this.errorMessage = state;
-      this.routing.goError();
     } else {
+      this.errorMessage = state;
       this.routing.goError();
     }
   }
