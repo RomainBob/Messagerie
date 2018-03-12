@@ -13,17 +13,15 @@ export class InstantMessagingService {
   private errorMessage: string;
   private participants: string [] = [];
   private invitations: string[] = [];
-  private contacts: string []= [];
+  private contacts: string [] = [];
   private currentDiscussionId: number;
   private discussions: Discussion[];
 
-  private askDiscussion(contact: string) {
-    //this.participants = [];
-    //this.participants = [contact];
+  public askDiscussion(contact: string) {
     for (const discussion of this.discussions) {
       if (discussion.participants.length === 1  && !(discussion.participants.indexOf(contact) === -1)){
         this.currentDiscussionId =  discussion.id;
-        this.sendFetchDiscussion();//  récupère la première discussion correspondante
+        this.sendFetchDiscussion(); //  récupère la première discussion correspondante
         break;
       }
       if (discussion.id === this.discussions[this.discussions.length - 1].id) {
@@ -32,12 +30,19 @@ export class InstantMessagingService {
     }
   }
 
-  private sendFetchDiscussion(){
-  //envoyer this.currentDiscussionId
+  public sendFetchDiscussion(){
+  // envoyer this.currentDiscussionId
   }
-  
+
   private sendCreateDiscussion(contact: string){
- 
+
+  }
+
+  private onFetchDiscussion(participants: string[], history: InstantMessage[]){
+    this.participants = [];
+    this.participants = participants;
+    this.messages = [];
+    this.messages = history;
   }
 
   private onInstantMessage(message: InstantMessage) {
@@ -76,6 +81,7 @@ export class InstantMessagingService {
       case 'users_list': this.onUserStatusChange(message.data); break;
       case 'connection': this.onConnection(message.data); break;
       case 'disconnection': this.onDisconnection(message.data); break;
+      case 'subscription': this.onSubscription(message.data); break;
       case 'invitation': this.onInvitation(message.data); break;
       case 'contact': this.onContact(message.data); break;
 
@@ -136,10 +142,25 @@ export class InstantMessagingService {
       this.logged = true;
       this.routing.goChat();
     } else {
-      this.errorMessage = 'Login non reconnu ou mot de passe incorrect';
+      this.errorMessage = state;
       this.routing.goError();
     }
   }
+
+  private onSubscription(state: string) {
+    if ( state === 'ok') {
+      this.routing.goLogin();
+    } else if (state === 'Pseudo déjà utilisé') {
+      this.errorMessage = state;
+      this.routing.goError();
+    } else if (state === 'Compte déjà existant') {
+      this.errorMessage = state;
+      this.routing.goError();
+    } else {
+      this.routing.goError();
+    }
+  }
+
 
   public isLogged(): boolean {
     return (this.logged);
@@ -150,6 +171,6 @@ export class InstantMessagingService {
   }
 
   public sendSubscription(username: string, password: string, mail: string) {
-    this.sendMessage('subscription', {username: username, password: password, mail: mail});
+    this.sendMessage('userSubscription', {username: username, password: password, mail: mail});
   }
 }

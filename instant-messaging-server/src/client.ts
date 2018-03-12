@@ -26,6 +26,8 @@ export class Client {
     public sendInstantMessage(content: string, author: string, date: Date) {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
+        console.log('addMessage succeded...');   
+        this.db.addMessage(content, author, date);   
     }
 
     public sendInvitation(dest : string, username: string){
@@ -58,20 +60,48 @@ export class Client {
         this.server.broadcastContact(username);
     }
 
-    private onUserLogin(username) {
-        if (!(typeof 'username' === 'string')) return;
-        if (!this.usernameRegex.test(username)) return;
-        this.username = username;
-        this.sendMessage('login', 'ok');
-        this.server.broadcastUsersList();
-        this.server.broadcastUserConnection('connection', username);
+    async onUserLogin(username, password) {
+        const i = await this.db.checkIfUserExists(username);
+        if (i === 1 ){ 
+            const verifyPassword = await this.db.verifyPasswordWithHashCode (username, password);  
+            if (!verifyPassword){
+                this.sendMessage('login', 'Mot de passe incorrect');
+                return;
+            } else {
+            this.username = username;
+            this.sendMessage('login', 'ok');
+            this.server.broadcastUsersList();
+            this.server.broadcastUserConnection('connection', username); 
+            }
+        } else {
+            this.sendMessage('login', 'Login non reconnu');
+            return;
+        }     
+        
     }
+
+    async onUserSubscription(username, password, mail) {
+        const i = await this.db.checkIfMailExists(mail);
+        const j = await this.db.checkIfUserExists(username); 
+        if (i === 1 ){ 
+            this.sendMessage('subscription', 'Compte déjà existant');
+            return;
+        } else if (j === 1 ){
+            this.sendMessage('subscription', 'Pseudo déjà utilisé');
+            return;
+        } else {
+            this.db.addUser(username, password, mail);   
+            this.sendMessage('subscription', 'ok');
+        }
+    }
+
 
     private onMessage(utf8Data: string): void {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
             case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
-            case 'userLogin': this.onUserLogin(message.data.username); break;
+            case 'userSubscription': this.onUserSubscription(message.data.username, message.data.password, message.data.mail); break;
+            case 'userLogin': this.onUserLogin(message.data.username, message.data.password); break;
             case 'invitation': this.onInvitation(message.data); break;
             case 'contact': this.onContact(message.data);
        }

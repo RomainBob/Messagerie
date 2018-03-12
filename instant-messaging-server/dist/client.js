@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 class Client {
     constructor(server, connection, db) {
@@ -23,6 +31,8 @@ class Client {
     sendInstantMessage(content, author, date) {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
+        console.log('addMessage succeded...');
+        this.db.addMessage(content, author, date);
     }
     sendInvitation(dest, username) {
         const invitation = [dest, username];
@@ -52,15 +62,45 @@ class Client {
         this.username = username;
         this.server.broadcastContact(username);
     }
-    onUserLogin(username) {
-        if (!(typeof 'username' === 'string'))
-            return;
-        if (!this.usernameRegex.test(username))
-            return;
-        this.username = username;
-        this.sendMessage('login', 'ok');
-        this.server.broadcastUsersList();
-        this.server.broadcastUserConnection('connection', username);
+    onUserLogin(username, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const i = yield this.db.checkIfUserExists(username);
+            if (i === 1) {
+                const verifyPassword = yield this.db.verifyPasswordWithHashCode(username, password);
+                if (!verifyPassword) {
+                    this.sendMessage('login', 'Mot de passe incorrect');
+                    return;
+                }
+                else {
+                    this.username = username;
+                    this.sendMessage('login', 'ok');
+                    this.server.broadcastUsersList();
+                    this.server.broadcastUserConnection('connection', username);
+                }
+            }
+            else {
+                this.sendMessage('login', 'Login non reconnu');
+                return;
+            }
+        });
+    }
+    onUserSubscription(username, password, mail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const i = yield this.db.checkIfMailExists(mail);
+            const j = yield this.db.checkIfUserExists(username);
+            if (i === 1) {
+                this.sendMessage('subscription', 'Compte déjà existant');
+                return;
+            }
+            else if (j === 1) {
+                this.sendMessage('subscription', 'Pseudo déjà utilisé');
+                return;
+            }
+            else {
+                this.db.addUser(username, password, mail);
+                this.sendMessage('subscription', 'ok');
+            }
+        });
     }
     onMessage(utf8Data) {
         const message = JSON.parse(utf8Data);
@@ -68,8 +108,11 @@ class Client {
             case 'instant_message':
                 this.onInstantMessage(message.data.content, message.data.participants);
                 break;
+            case 'userSubscription':
+                this.onUserSubscription(message.data.username, message.data.password, message.data.mail);
+                break;
             case 'userLogin':
-                this.onUserLogin(message.data.username);
+                this.onUserLogin(message.data.username, message.data.password);
                 break;
             case 'invitation':
                 this.onInvitation(message.data);
