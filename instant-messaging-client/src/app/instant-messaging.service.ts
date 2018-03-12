@@ -68,10 +68,15 @@ export class InstantMessagingService {
     console.log(this.invitations);
   }
 
- public  onContact(contact: string  ) {
-    this.contacts.push(contact);
+ public  onDestContact(contact: string[]) {
+    this.contacts.push(contact[1]);
     console.log(this.contacts);
   }
+
+  public  onContact(contact: string  ) {
+    this.contacts.push(contact);
+    console.log(this.contacts);
+    }
 
   private onMessage(data: string) {
     const message = JSON.parse(data);
@@ -83,8 +88,7 @@ export class InstantMessagingService {
       case 'disconnection': this.onDisconnection(message.data); break;
       case 'subscription': this.onSubscription(message.data); break;
       case 'invitation': this.onInvitation(message.data); break;
-      case 'contact': this.onContact(message.data); break;
-
+      case 'contact': this.onDestContact(message.data); break;
     }
   }
 

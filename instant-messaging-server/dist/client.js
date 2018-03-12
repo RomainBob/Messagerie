@@ -38,7 +38,8 @@ class Client {
         const invitation = [dest, username];
         this.sendMessage('invitation', invitation);
     }
-    sendContact(contact) {
+    sendContact(dest, username) {
+        const contact = [dest, username];
         this.sendMessage('contact', contact);
     }
     sendUserConnection(connection, username) {
@@ -58,9 +59,8 @@ class Client {
             return;
         this.server.broadcastInvitation(dest, this.username);
     }
-    onContact(username) {
-        this.username = username;
-        this.server.broadcastContact(username);
+    onDestContact(dest) {
+        this.server.broadcastContact(dest, this.username);
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -117,7 +117,7 @@ class Client {
             case 'invitation':
                 this.onInvitation(message.data);
                 break;
-            case 'contact': this.onContact(message.data);
+            case 'contact': this.onDestContact(message.data);
         }
     }
     getUserName() {

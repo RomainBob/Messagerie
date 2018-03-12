@@ -35,8 +35,9 @@ export class Client {
         this.sendMessage('invitation', invitation);
     }
 
-    public sendContact(contact: string){
-        this.sendMessage('contact', contact);
+    public sendContact(dest, username) {
+       const contact = [dest, username];
+       this.sendMessage('contact', contact);
     }
     
     public sendUserConnection(connection: string, username: string){
@@ -55,9 +56,8 @@ export class Client {
         this.server.broadcastInvitation(dest, this.username);
     }
     
-    private onContact(username){
-        this.username = username;
-        this.server.broadcastContact(username);
+    private onDestContact(dest) {
+        this.server.broadcastContact(dest, this.username);
     }
 
     async onUserLogin(username, password) {
@@ -103,7 +103,7 @@ export class Client {
             case 'userSubscription': this.onUserSubscription(message.data.username, message.data.password, message.data.mail); break;
             case 'userLogin': this.onUserLogin(message.data.username, message.data.password); break;
             case 'invitation': this.onInvitation(message.data); break;
-            case 'contact': this.onContact(message.data);
+            case 'contact': this.onDestContact(message.data);
        }
     }
 

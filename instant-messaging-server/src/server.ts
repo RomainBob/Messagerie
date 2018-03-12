@@ -33,10 +33,10 @@ export class Server {
         }
     }
     
-    public broadcastContact ( username: string){
+    public broadcastContact(dest, username){
         for(const client of this.clients){
-            if(client.getUserName()===username)
-                client.sendContact( username);
+            if (client.getUserName() === dest)
+               client.sendContact(dest, username);
         }
     }
 
