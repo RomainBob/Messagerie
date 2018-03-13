@@ -8,7 +8,7 @@ import { ChatComponent } from './chat/chat.component';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { SubscribeFormComponent } from './subscribe-form/subscribe-form.component';
 import { ErrorComponent } from './error/error.component';
-
+import { ProfilComponent } from './profil/profil.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -16,7 +16,8 @@ const routes: Routes = [
   { path: 'login', component: LoginFormComponent },
   { path: 'subscribe', component: SubscribeFormComponent },
   { path: 'chat', component: ChatComponent },
-  { path: 'error', component: ErrorComponent }
+  { path: 'error', component: ErrorComponent },
+  { path: 'profil', component: ProfilComponent }
 ];
 
 @NgModule({
