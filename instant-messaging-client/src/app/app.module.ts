@@ -29,6 +29,7 @@ import { InvitationFormComponent } from './invitation-form/invitation-form.compo
 import { ContactListComponent } from './contact-list/contact-list.component';
 import { ContactComponent } from './contact/contact.component';
 import { ProfilComponent } from './profil/profil.component';
+import { DiscussionsListComponent } from './discussions-list/discussions-list.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +50,8 @@ import { ProfilComponent } from './profil/profil.component';
     InvitationFormComponent,
     ContactListComponent,
     ContactComponent,
-    ProfilComponent
+    ProfilComponent,
+    DiscussionsListComponent
   ],
   imports: [
     BrowserModule,

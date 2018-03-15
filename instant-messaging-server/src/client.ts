@@ -60,6 +60,7 @@ export class Client {
         this.server.broadcastContact(dest, this.username);
     }
 
+
     async onUserLogin(username, password) {
         const i = await this.db.checkIfUserExists(username);
         if (i === 1 ){ 
@@ -103,8 +104,22 @@ export class Client {
             case 'userSubscription': this.onUserSubscription(message.data.username, message.data.password, message.data.mail); break;
             case 'userLogin': this.onUserLogin(message.data.username, message.data.password); break;
             case 'invitation': this.onInvitation(message.data); break;
-            case 'contact': this.onDestContact(message.data);
+            case 'contact': this.onDestContact(message.data); break;
+            case 'discussion': this.onFetchDiscussion(message.data); break;
+           case 'createDiscussion': this.onCreateDiscussion(message.data); break;  
        }
+    }
+
+    private onFetchDiscussion(discussionId: number){
+        console.log('FetchDiscussion arrivé côté serveur');
+/*        this.sendMessage('discussion', 
+            {discussionId, this.db.getParticipants(discussionId), this.db.getHistory(discussionId)};
+  */
+   }
+
+    private onCreateDiscussion(contact: string){
+        console.log('onCreate arrivé côté serveur');
+//        this.onFetchDiscussion(this.db.addDiscussion(this.username, contact));
     }
 
     public getUserName(){

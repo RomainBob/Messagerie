@@ -117,8 +117,26 @@ class Client {
             case 'invitation':
                 this.onInvitation(message.data);
                 break;
-            case 'contact': this.onDestContact(message.data);
+            case 'contact':
+                this.onDestContact(message.data);
+                break;
+            case 'discussion':
+                this.onFetchDiscussion(message.data);
+                break;
+            case 'createDiscussion':
+                this.onCreateDiscussion(message.data);
+                break;
         }
+    }
+    onFetchDiscussion(discussionId) {
+        console.log('FetchDiscussion arrivé côté serveur');
+        /*        this.sendMessage('discussion',
+                    {discussionId, this.db.getParticipants(discussionId), this.db.getHistory(discussionId)};
+          */
+    }
+    onCreateDiscussion(contact) {
+        console.log('onCreate arrivé côté serveur');
+        //        this.onFetchDiscussion(this.db.addDiscussion(this.username, contact));
     }
     getUserName() {
         return this.username;
