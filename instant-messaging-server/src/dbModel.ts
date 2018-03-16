@@ -31,12 +31,12 @@ export class DbModel {
         return await bcrypt.hash(password, SALT_WORK_FACTOR);
     }
 
-    async userToArray(username: string): Promise <any> {
+    async checkIfPasswordMatches (username: string): Promise <any> {
         return await this.database.collection('users').find({username:username}).toArray();
     }
     
     async verifyPasswordWithHashCode (username, password): Promise <any> {
-        const i = await this.userToArray(username);
+        const i = await this.checkIfPasswordMatches(username);
         const hash = i[0].password;
         return await bcrypt.compare(password, hash);
     }

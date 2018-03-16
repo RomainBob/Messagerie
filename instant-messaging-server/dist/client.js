@@ -34,15 +34,33 @@ class Client {
         console.log('addMessage succeded...');
         this.db.addMessage(content, author, date);
     }
+    sendInvitation(dest, username) {
+        const invitation = [dest, username];
+        this.sendMessage('invitation', invitation);
+    }
+    sendContact(dest, username) {
+        const contact = [dest, username];
+        this.sendMessage('contact', contact);
+    }
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
     }
-    onInstantMessage(content) {
+    onInstantMessage(content, participants) {
         if (!(typeof 'content' === 'string'))
             return;
         if (this.username == null)
             return;
-        this.server.broadcastInstantMessage(content, this.username);
+        this.server.broadcastInstantMessage(content, this.username, participants);
+    }
+    onInvitation(dest) {
+        if (!(typeof 'dest' === 'string'))
+            return;
+        if (!this.usernameRegex.test(dest))
+            return;
+        this.server.broadcastInvitation(dest, this.username);
+    }
+    onDestContact(dest) {
+        this.server.broadcastContact(dest, this.username);
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -88,7 +106,7 @@ class Client {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
             case 'instant_message':
-                this.onInstantMessage(message.data);
+                this.onInstantMessage(message.data.content, message.data.participants);
                 break;
             case 'userSubscription':
                 this.onUserSubscription(message.data.username, message.data.password, message.data.mail);
@@ -96,7 +114,29 @@ class Client {
             case 'userLogin':
                 this.onUserLogin(message.data.username, message.data.password);
                 break;
+            case 'invitation':
+                this.onInvitation(message.data);
+                break;
+            case 'contact':
+                this.onDestContact(message.data);
+                break;
+            case 'discussion':
+                this.onFetchDiscussion(message.data);
+                break;
+            case 'createDiscussion':
+                this.onCreateDiscussion(message.data);
+                break;
         }
+    }
+    onFetchDiscussion(discussionId) {
+        console.log('FetchDiscussion arrivé côté serveur');
+        /*        this.sendMessage('discussion',
+                    {discussionId, this.db.getParticipants(discussionId), this.db.getHistory(discussionId)};
+          */
+    }
+    onCreateDiscussion(contact) {
+        console.log('onCreate arrivé côté serveur');
+        //        this.onFetchDiscussion(this.db.addDiscussion(this.username, contact));
     }
     getUserName() {
         return this.username;

@@ -42,14 +42,14 @@ class DbModel {
             return yield bcrypt.hash(password, SALT_WORK_FACTOR);
         });
     }
-    userToArray(username) {
+    checkIfPasswordMatches(username) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.database.collection('users').find({ username: username }).toArray();
         });
     }
     verifyPasswordWithHashCode(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            const i = yield this.userToArray(username);
+            const i = yield this.checkIfPasswordMatches(username);
             const hash = i[0].password;
             return yield bcrypt.compare(password, hash);
         });
