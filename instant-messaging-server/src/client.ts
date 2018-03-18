@@ -26,8 +26,6 @@ export class Client {
     public sendInstantMessage(content: string, author: string, date: Date) {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
-        console.log('addMessage succeded...');   
-        this.db.addMessage(content, author, date);   
     }
 
     public sendInvitation(dest : string, username: string){
@@ -44,12 +42,31 @@ export class Client {
         this.sendMessage(connection, username);
     }
 
-    private onInstantMessage(content: string, participants: string[]): void {
+    private onInstantMessage(discussionId: string, content: string, participants: string[]): void {
         if (!(typeof 'content' === 'string')) return;
         if (this.username==null) return;
-        this.server.broadcastInstantMessage(content, this.username, participants);
+        this.server.broadcastInstantMessage(discussionId, content, this.username, participants);
     }
-
+/*
+    async onInvitation(dest){
+        if (!(typeof 'dest' === 'string')) return;
+        if (!this.usernameRegex.test(dest)) return;
+        await this.db.addInvitationsInUsersCollection (this.username, dest);
+        await this.db.createDiscussion(this.username, dest);
+        const id_discussion = await this.db.getCountersIdwithOutIncrementation('idIncrementDiscussion');
+        await this.db.addDiscussionIdToUser (this.username, id_discussion[0].sequence_value);
+        await this.db.addDiscussionIdToUser (dest, id_discussion[0].sequence_value);
+        this.server.broadcastInvitation(dest, this.username);
+       
+    }
+    
+    async onDestContact(dest) {
+        await this.db.addContactsInUsersCollection  (dest, this.username);
+        await this.db.addContactsInUsersCollection  (this.username, dest);
+        this.server.broadcastContact(dest, this.username);
+        
+    }
+  */    
     private onInvitation(dest){
         if (!(typeof 'dest' === 'string')) return;
         if (!this.usernameRegex.test(dest)) return;
@@ -59,7 +76,7 @@ export class Client {
     private onDestContact(dest) {
         this.server.broadcastContact(dest, this.username);
     }
-
+  
 
     async onUserLogin(username, password) {
         const i = await this.db.checkIfUserExists(username);
@@ -100,26 +117,45 @@ export class Client {
     private onMessage(utf8Data: string): void {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
-            case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
+            case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants, message.data.discussionId); break;
             case 'userSubscription': this.onUserSubscription(message.data.username, message.data.password, message.data.mail); break;
             case 'userLogin': this.onUserLogin(message.data.username, message.data.password); break;
             case 'invitation': this.onInvitation(message.data); break;
             case 'contact': this.onDestContact(message.data); break;
             case 'discussion': this.onFetchDiscussion(message.data); break;
-           case 'createDiscussion': this.onCreateDiscussion(message.data); break;  
+            case 'createDiscussion': this.onCreateDiscussion(message.data); break;
+            case 'addParticipant': this.onAddParticipant(message.data.discussionId, message.data.contactId); break;  
+            case 'quitDiscussion': this.onQuitDiscussion(message.data); break;  
        }
     }
 
-    private onFetchDiscussion(discussionId: number){
-        console.log('FetchDiscussion arrivé côté serveur');
-/*        this.sendMessage('discussion', 
-            {discussionId, this.db.getParticipants(discussionId), this.db.getHistory(discussionId)};
-  */
-   }
+    async onFetchDiscussion(discussionId: string) {
+        console.log('FetchDiscussion ' + discussionId );
+        const participants = await this.db.getParticipants(discussionId);
+        console.log('FetchDiscussion ' + discussionId + ' : trouve participants');
+        const history = await this.db.getHistory(discussionId);        
+        console.log('FetchDiscussion ' + discussionId + ' : trouve historique');
+        this.sendMessage('discussion', {discussionId, participants, history});
+    }
 
-    private onCreateDiscussion(contact: string){
-        console.log('onCreate arrivé côté serveur');
-//        this.onFetchDiscussion(this.db.addDiscussion(this.username, contact));
+    async onCreateDiscussion(contact: string) {
+        console.log('onCreateDiscussion avec ' + this.username + '' + contact);
+        const discussionId = await this.db.createDiscussion(this.username, contact);
+        console.log('recharge discussion ' + discussionId);
+        this.onFetchDiscussion(discussionId);
+    }
+
+    private onAddParticipant(discussionId: number, contactId: number) {
+        console.log('ajout participant a' + discussionId);
+//        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
+// l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
+//        this.onFetchDiscussion(discussionId);
+    }
+
+    private onQuitDiscussion(discussionId: number) {
+        console.log('quitte discussion' + discussionId);
+//        this.db.pullParticipant(discussionId, this.username));
+//        récupérer les infos liste des discussions
     }
 
     public getUserName(){

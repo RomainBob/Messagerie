@@ -12,13 +12,14 @@ export class Server {
         this.addWebSocketServer(server);
     }
        
-    public broadcastInstantMessage(content: string, author: string, participants: string[]): void {
+    public broadcastInstantMessage(discussionId: string, content: string, author: string, participants: string[]): void {
         const date = new Date();
         for (const client of this.clients) {
             if (!(participants.indexOf(client.getUserName())===-1))
               client.sendInstantMessage(content, author, date);
         }
-      }
+        this.db.addMessageInHistory(discussionId, content, author, date);
+    }
     
     public broadcastUsersList(): void {
         for (const client of this.clients) {

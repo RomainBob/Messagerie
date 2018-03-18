@@ -26,22 +26,21 @@ export class InstantMessagingService {
         break;
       }
       if (discussion.id === this.discussions[this.discussions.length - 1].id) {
-        console.log('createDiscussion');
+        console.log('createDiscussion avec ' + contact);
         this.sendCreateDiscussion(contact); // crée la discussion
       }
     }
   }
 
-/*
-  private onFetchDiscussion(discussion: Discussion){
+  private onFetchDiscussion(discussion: Discussion) {
     this.currentDiscussion.id = discussion.id;
     this.currentDiscussion.participants = [];
     this.currentDiscussion.participants = discussion.participants;
     this.currentDiscussion.history = [];
     this.currentDiscussion.history = discussion.history;
-    this.messages = this.currentDiscussion.history; // à suprimeer après refactoring
+    this.messages = this.currentDiscussion.history; // à supprimer après refactoring
   }
-*/
+
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
     console.log('nouveau message');
@@ -86,16 +85,16 @@ export class InstantMessagingService {
       case 'subscription': this.onSubscription(message.data); break;
       case 'invitation': this.onInvitation(message.data); break;
       case 'contact': this.onDestContact(message.data); break;
-     // case 'discussion' : this.onFetchDiscussion(message.data); break;
+      case 'discussion' : this.onFetchDiscussion(message.data); break;
     }
   }
 
   public constructor(private routing: RoutingService) {
-    this.discussions = [{id: 1, participants: ['toto', 'sophie']},
+   this.discussions = [{id: 1, participants: ['toto', 'sophie']},
     {id: 2, participants: ['serge', 'sophie']},
     {id: 3, participants: ['serge', 'sophie', 'tristan']},
     {id: 4, participants: ['toto', 'serge', 'tristan']},
-  ]; // TEST
+  ]; 
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
     this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
@@ -137,7 +136,8 @@ export class InstantMessagingService {
 
   public sendInstantMessage(content: string) {
     this.participants = this.users;   // liste des destinataires temporairement étendue à tous les utilisateurs connectés
-    const privateMessage = {content : content, participants : this.participants}
+    const privateMessage = {discussionId : this.currentDiscussion.id, content : content, participants : this.participants};
+     // remplacer participants par currentDiscussion.participants
     this.sendMessage('instant_message', privateMessage);
   }
 
@@ -150,12 +150,21 @@ export class InstantMessagingService {
   }
 
   public sendFetchDiscussion(discussionId: number) {
-    console.log('discussion' + discussionId);
+    console.log('sendFetchDiscussion' + discussionId);
     this.sendMessage('discussion', discussionId);
   }
 
   private sendCreateDiscussion(contact: string) {
     this.sendMessage('createDiscussion', contact);
+  }
+
+  public sendAddParticipant(contact: string) {
+    const addParticipant = {discussionId: this.currentDiscussion.id, contact: contact};
+    this.sendMessage('addParticipant', addParticipant);
+  }
+
+  public sendQuitDiscussion() {
+    this.sendMessage('quitDiscussion', this.currentDiscussion.id);
   }
 
   private onLogin(state: string) {
