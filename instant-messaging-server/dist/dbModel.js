@@ -92,9 +92,11 @@ class DbModel {
     createDiscussion(usernameSender, usernameReceiver) {
         return __awaiter(this, void 0, void 0, function* () {
             const iDSender = yield this.getUserId(usernameSender);
+            console.log('iDSender' + iDSender);
             const iDReceiver = yield this.getUserId(usernameReceiver);
+            console.log('iDReceiver' + iDReceiver);
             const id_discussion = yield this.getCountersIdwithIncrementation('idIncrementDiscussion');
-            console.log('jusque là ça va');
+            console.log('id_discussion' + id_discussion + 'jusque là ça va');
             yield this.database.collection('Discussions')
                 .insertOne({ _id: id_discussion[0].sequence_value, users: [iDSender, iDReceiver], history: [] });
             yield this.addDiscussionIdToUser(iDSender, id_discussion);

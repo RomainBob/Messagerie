@@ -76,9 +76,11 @@ export class DbModel {
 
     async createDiscussion(usernameSender: string, usernameReceiver: string): Promise<string> {
         const iDSender = await this.getUserId(usernameSender);
+        console.log('iDSender'+ iDSender);
         const iDReceiver = await this.getUserId(usernameReceiver);
+        console.log('iDReceiver'+ iDReceiver);
         const id_discussion = await this.getCountersIdwithIncrementation('idIncrementDiscussion');
-        console.log('jusque là ça va');
+        console.log('id_discussion' +id_discussion +'jusque là ça va');
         await this.database.collection('Discussions')
         .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, iDReceiver], history:[]});    
         await this.addDiscussionIdToUser(iDSender, id_discussion);
