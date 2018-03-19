@@ -12,11 +12,12 @@ export class InstantMessagingService {
   private socket: WebSocket;
   private logged: boolean;
   private errorMessage: string;
-  private participants: string [] = [];
   private invitations: string[] = [];
   private contacts: string [] = [];
-  private currentDiscussion: Discussion;
   private discussions: DiscussionsListItem[];
+  private currentDiscussion: Discussion;
+  private currentDiscussionId: string;
+  private participants: string [] = [];
 
   public askDiscussion(contact: string) {
     for (const discussion of this.discussions) {
@@ -33,11 +34,15 @@ export class InstantMessagingService {
   }
 
   private onFetchDiscussion(discussion: Discussion) {
+    console.log('arrivé dans onFetchDiscussion du service' + discussion.id);
     this.currentDiscussion.id = discussion.id;
+    console.log('changé currentDiscussion.id' + discussion.id);
     this.currentDiscussion.participants = [];
     this.currentDiscussion.participants = discussion.participants;
+    console.log('changé currentDiscussion.participants' + discussion.participants);
     this.currentDiscussion.history = [];
     this.currentDiscussion.history = discussion.history;
+    console.log('changé currentDiscussion.history' + discussion.history);
     this.messages = this.currentDiscussion.history; // à supprimer après refactoring
   }
 
@@ -94,7 +99,7 @@ export class InstantMessagingService {
     {id: 2, participants: ['serge', 'sophie']},
     {id: 3, participants: ['serge', 'sophie', 'tristan']},
     {id: 4, participants: ['toto', 'serge', 'tristan']},
-  ]; 
+  ];
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
     this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);

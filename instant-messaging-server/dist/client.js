@@ -154,9 +154,9 @@ class Client {
     }
     onFetchDiscussion(discussionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('FetchDiscussion ' + discussionId);
+            console.log('on entre dans la fonction onFetchDiscussion ' + discussionId);
             const participants = yield this.db.getParticipants(discussionId);
-            console.log('FetchDiscussion ' + discussionId + ' : trouve participants');
+            console.log('FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0].sequence_value);
             const history = yield this.db.getHistory(discussionId);
             console.log('FetchDiscussion ' + discussionId + ' : trouve historique');
             this.sendMessage('discussion', { discussionId, participants, history });
@@ -164,10 +164,13 @@ class Client {
     }
     onCreateDiscussion(contact) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('onCreateDiscussion avec ' + this.username + '' + contact);
+            console.log('on entre dans la fonction onCreateDiscussion avec ' + this.username + '' + contact);
             const discussionId = yield this.db.createDiscussion(this.username, contact);
-            console.log('recharge discussion ' + discussionId);
+            console.log('a créé la disc et va la recharger ' + discussionId);
             this.onFetchDiscussion(discussionId);
+            console.log('a chargé la disc ' + discussionId + '; onCreateDiscussion ' + contact + ' terminé');
+            //   await this.db.addDiscussionIdToUser(iDSender, id_discussion);
+            //  await this.db.addDiscussionIdToUser(iDReceiver, id_discussion);
         });
     }
     onAddParticipant(discussionId, contactId) {

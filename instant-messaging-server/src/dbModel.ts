@@ -74,18 +74,15 @@ export class DbModel {
         return iD[0]._id;
     }
 
-    async createDiscussion(usernameSender: string, usernameReceiver: string): Promise<string> {
+    async createDiscussion(usernameSender: string, usernameReceiver: string): Promise<any> {
+        console.log('on entre dans la fonction dbModel createDiscussion');
         const iDSender = await this.getUserId(usernameSender);
-        console.log('iDSender'+ iDSender);
         const iDReceiver = await this.getUserId(usernameReceiver);
-        console.log('iDReceiver'+ iDReceiver);
         const id_discussion = await this.getCountersIdwithIncrementation('idIncrementDiscussion');
-        console.log('id_discussion' +id_discussion +'jusque là ça va');
         await this.database.collection('Discussions')
-        .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, iDReceiver], history:[]});    
-        await this.addDiscussionIdToUser(iDSender, id_discussion);
-        await this.addDiscussionIdToUser(iDReceiver, id_discussion);
-        return id_discussion;
+        .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, iDReceiver], history:[]});  
+        console.log('dbModel id_discussion' +id_discussion +'créée');
+        return id_discussion[0].sequence_value;
     }
 
     async addMessageInHistory(id_discussion: string, content: string, author: string, date: Date): Promise<void> {

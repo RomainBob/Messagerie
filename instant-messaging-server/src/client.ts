@@ -130,29 +130,32 @@ export class Client {
     }
 
     async onFetchDiscussion(discussionId: string) {
-        console.log('FetchDiscussion ' + discussionId );
+        console.log('on entre dans la fonction onFetchDiscussion ' + discussionId );
         const participants = await this.db.getParticipants(discussionId);
-        console.log('FetchDiscussion ' + discussionId + ' : trouve participants');
+        console.log('FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0].sequence_value);
         const history = await this.db.getHistory(discussionId);        
         console.log('FetchDiscussion ' + discussionId + ' : trouve historique');
         this.sendMessage('discussion', {discussionId, participants, history});
     }
 
     async onCreateDiscussion(contact: string) {
-        console.log('onCreateDiscussion avec ' + this.username + '' + contact);
+        console.log('on entre dans la fonction onCreateDiscussion avec ' + this.username + '' + contact);
         const discussionId = await this.db.createDiscussion(this.username, contact);
-        console.log('recharge discussion ' + discussionId);
+        console.log('a créé la disc et va la recharger ' + discussionId);
         this.onFetchDiscussion(discussionId);
+        console.log('a chargé la disc ' + discussionId +'; onCreateDiscussion '+contact+' terminé' );
+    //   await this.db.addDiscussionIdToUser(iDSender, id_discussion);
+    //  await this.db.addDiscussionIdToUser(iDReceiver, id_discussion);
     }
 
-    private onAddParticipant(discussionId: number, contactId: number) {
+    private onAddParticipant(discussionId: string, contactId: string) {
         console.log('ajout participant a' + discussionId);
 //        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
 // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
 //        this.onFetchDiscussion(discussionId);
     }
 
-    private onQuitDiscussion(discussionId: number) {
+    private onQuitDiscussion(discussionId: string) {
         console.log('quitte discussion' + discussionId);
 //        this.db.pullParticipant(discussionId, this.username));
 //        récupérer les infos liste des discussions
