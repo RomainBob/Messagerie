@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const websocket_1 = require("websocket");
 const http = require("http");
@@ -12,12 +20,14 @@ class Server {
         this.addWebSocketServer(server);
     }
     broadcastInstantMessage(discussionId, content, author, participants) {
-        const date = new Date();
-        for (const client of this.clients) {
-            if (!(participants.indexOf(client.getUserName()) === -1))
-                client.sendInstantMessage(content, author, date);
-        }
-        this.db.addMessageInHistory(discussionId, content, author, date);
+        return __awaiter(this, void 0, void 0, function* () {
+            const date = new Date();
+            for (const client of this.clients) {
+                if (!(participants.indexOf(client.getUserName()) === -1))
+                    client.sendInstantMessage(content, author, date);
+            }
+            yield this.db.addMessageInHistory(discussionId, content, author, date);
+        });
     }
     broadcastUsersList() {
         for (const client of this.clients) {
@@ -36,6 +46,20 @@ class Server {
                 client.sendContact(dest, username);
         }
     }
+    broadcastOkInvitation(contact, username) {
+        for (const client of this.clients) {
+            if (client.getUserName() === username)
+                client.sendOkInviation(contact);
+        }
+    }
+    /*public broadcastRemoveInviation(invitaion: string, username: string ){
+        for(const client of this.clients){
+            if (client.getUserName() === username)
+               client.sendRemoveInvitation(invitaion );
+        }
+
+
+    }*/
     broadcastUserConnection(connection, username) {
         switch (connection) {
             case 'connection':

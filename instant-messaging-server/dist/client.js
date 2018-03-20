@@ -31,14 +31,51 @@ class Client {
     sendInstantMessage(content, author, date) {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
+        console.log('addMessage succeded...');
+        //this.db.addMessage(content, author, date);   
+    }
+    sendOwnUser(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = yield this.db.getUserId(username);
+            const invitations = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('invitations', username);
+            const con = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('contacts', username);
+            const contacts = [];
+            for (let i = 0; i < con.length; i++) {
+                contacts[i] = con[i].idUser;
+                console.log('contact = ' + contacts[i]);
+            }
+            const discussions = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('id_discussion', username);
+            const dataUser = { userId, username,
+                invitations, contacts, discussions };
+            this.sendMessage('ownUser', dataUser);
+        });
     }
     sendInvitation(dest, username) {
-        const invitation = [dest, username];
-        this.sendMessage('invitation', invitation);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (dest === username)
+                return;
+            const invitation = [dest, username];
+            this.sendMessage('invitation', invitation);
+            const usernameInvitations = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('invitations', this.username);
+            const id_dest = yield this.db.getUserId(dest);
+            const b = yield this.db.verifyIfExistInContact_Invitation('invitations', username, dest);
+            if (b === 0) {
+                yield this.db.addContactsOrInvitationsInUsersCollection("invitations", username, dest);
+            }
+        });
     }
+    /*public sendRemoveInvitation(removeInvitation: string ){
+        this.sendMessage('removeInvitation', removeInvitation);
+            this.db.remooveInvitation(invitation, this.username);
+
+    }*/
     sendContact(dest, username) {
         const contact = [dest, username];
         this.sendMessage('contact', contact);
+    }
+    sendOkInviation(contact) {
+        const okInvitation = contact;
+        this.sendMessage('okInvitation', okInvitation);
     }
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
@@ -50,35 +87,28 @@ class Client {
             return;
         this.server.broadcastInstantMessage(discussionId, content, this.username, participants);
     }
-    /*
-        async onInvitation(dest){
-            if (!(typeof 'dest' === 'string')) return;
-            if (!this.usernameRegex.test(dest)) return;
-            await this.db.addInvitationsInUsersCollection (this.username, dest);
-            await this.db.createDiscussion(this.username, dest);
-            const id_discussion = await this.db.getCountersIdwithOutIncrementation('idIncrementDiscussion');
-            await this.db.addDiscussionIdToUser (this.username, id_discussion[0].sequence_value);
-            await this.db.addDiscussionIdToUser (dest, id_discussion[0].sequence_value);
-            this.server.broadcastInvitation(dest, this.username);
-           
-        }
-        
-        async onDestContact(dest) {
-            await this.db.addContactsInUsersCollection  (dest, this.username);
-            await this.db.addContactsInUsersCollection  (this.username, dest);
-            this.server.broadcastContact(dest, this.username);
-            
-        }
-      */
     onInvitation(dest) {
-        if (!(typeof 'dest' === 'string'))
-            return;
-        if (!this.usernameRegex.test(dest))
-            return;
         this.server.broadcastInvitation(dest, this.username);
     }
-    onDestContact(dest) {
-        this.server.broadcastContact(dest, this.username);
+    removeInvitaion(invitation) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.sendMessage('removeInvitation', invitation);
+            yield this.db.deleteInvitationsOrContacts('invitation', invitation, this.username);
+            /* this.server.broadcastRemoveInviation(invitation, this.username);*/
+        });
+    }
+    onContact(dest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const b = yield this.db.verifyIfExistInContact_Invitation('contacts', this.username, dest);
+            if (b === 0) {
+                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", this.username, dest);
+                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", dest, this.username);
+            }
+            this.server.broadcastContact(dest, this.username);
+        });
+    }
+    onOkInvitation(contact) {
+        this.server.broadcastOkInvitation(contact, this.username);
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -92,6 +122,7 @@ class Client {
                 else {
                     this.username = username;
                     this.sendMessage('login', 'ok');
+                    this.sendOwnUser(username);
                     this.server.broadcastUsersList();
                     this.server.broadcastUserConnection('connection', username);
                 }
@@ -123,8 +154,9 @@ class Client {
     onMessage(utf8Data) {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
+            //case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
             case 'instant_message':
-                this.onInstantMessage(message.data.content, message.data.participants, message.data.discussionId);
+                this.onInstantMessage(message.data.discussionId, message.data.content, message.data.participants);
                 break;
             case 'userSubscription':
                 this.onUserSubscription(message.data.username, message.data.password, message.data.mail);
@@ -136,13 +168,19 @@ class Client {
                 this.onInvitation(message.data);
                 break;
             case 'contact':
-                this.onDestContact(message.data);
+                this.onContact(message.data);
+                break;
+            case 'okInvitation':
+                this.onOkInvitation(message.data);
                 break;
             case 'discussion':
                 this.onFetchDiscussion(message.data);
                 break;
             case 'createDiscussion':
                 this.onCreateDiscussion(message.data);
+                break;
+            case 'removeInvitation':
+                this.removeInvitaion(message.data);
                 break;
             case 'addParticipant':
                 this.onAddParticipant(message.data.discussionId, message.data.contactId);
@@ -156,10 +194,11 @@ class Client {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('on entre dans la fonction onFetchDiscussion ' + discussionId);
             const participants = yield this.db.getParticipants(discussionId);
-            console.log('FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0].sequence_value);
+            console.log('FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0] + participants[1]);
             const history = yield this.db.getHistory(discussionId);
             console.log('FetchDiscussion ' + discussionId + ' : trouve historique');
-            this.sendMessage('discussion', { discussionId, participants, history });
+            const discussion = { discussionId, participants, history };
+            this.sendMessage('discussion', discussion);
         });
     }
     onCreateDiscussion(contact) {
@@ -169,20 +208,25 @@ class Client {
             console.log('a créé la disc et va la recharger ' + discussionId);
             this.onFetchDiscussion(discussionId);
             console.log('a chargé la disc ' + discussionId + '; onCreateDiscussion ' + contact + ' terminé');
-            //   await this.db.addDiscussionIdToUser(iDSender, id_discussion);
-            //  await this.db.addDiscussionIdToUser(iDReceiver, id_discussion);
+            yield this.db.addDiscussionIdToUser(this.username, discussionId);
+            yield this.db.addDiscussionIdToUser(contact, discussionId);
         });
     }
     onAddParticipant(discussionId, contactId) {
-        console.log('ajout participant a' + discussionId);
-        //        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
-        // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
-        //        this.onFetchDiscussion(discussionId);
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('ajout participant a' + discussionId);
+            yield this.db.addDiscussionIdToUser(contactId, discussionId);
+            //        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
+            // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
+            //        this.onFetchDiscussion(discussionId);
+        });
     }
     onQuitDiscussion(discussionId) {
-        console.log('quitte discussion' + discussionId);
-        //        this.db.pullParticipant(discussionId, this.username));
-        //        récupérer les infos liste des discussions
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('quitte discussion' + discussionId);
+            //        this.db.pullParticipant(discussionId, this.username)); 2 méthodes
+            //        récupérer les infos liste des discussions
+        });
     }
     getUserName() {
         return this.username;

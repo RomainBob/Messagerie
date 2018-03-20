@@ -25,7 +25,22 @@ class DbModel {
             const hash = yield this.hashPassword(password);
             yield this.database.collection('users')
                 .insertOne({ _id: i[0].sequence_value, username: username, password: hash, mail: mail,
-                contacts: [1, 2], invitations: [], id_discussion: [] }); // attention TEST sur contact
+                contacts: [], invitations: [], id_discussion: [] }); // attention TEST sur contact
+        });
+    }
+    getContactsOrInvitationsOrDiscussionFromUserCollection(contactOrInvitation, username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const id_user = yield this.getUserId(username);
+            const userDocument = yield this.database.collection('users').find({ _id: id_user }).toArray();
+            if (contactOrInvitation == 'contacts') {
+                return userDocument[0].contacts;
+            }
+            if (contactOrInvitation == 'invitations') {
+                return userDocument[0].invitations;
+            }
+            if (contactOrInvitation == 'id_discussion') {
+                return userDocument[0].id_discussion;
+            }
         });
     }
     addContactsInUsersCollection(usernameSender, usernameReceiver) {
@@ -36,11 +51,51 @@ class DbModel {
                 .update({ _id: iDSender }, { $push: { contacts: { idUser: iDReceiver } } });
         });
     }
-    addContact(usernameSender) {
+    addContactsOrInvitationsInUsersCollection(contactOrInvitation, usernameSender, usernameReceiver) {
         return __awaiter(this, void 0, void 0, function* () {
             const iDSender = yield this.getUserId(usernameSender);
-            yield this.database.collection('users')
-                .update({ _id: iDSender }, { $push: { contacts: { idUser: 'toutou' } } });
+            const iDReceiver = yield this.getUserId(usernameReceiver);
+            if (contactOrInvitation == 'contacts') {
+                yield this.database.collection('users')
+                    .update({ _id: iDSender }, { $push: { contacts: { idUser: iDReceiver } } });
+            }
+            if (contactOrInvitation == 'invitations') {
+                yield this.database.collection('users')
+                    .update({ _id: iDSender }, { $push: { invitations: { idUser: iDReceiver } } });
+            }
+        });
+    }
+    verifyIfExistInContact_Invitation(contactOrInvitation, usernameSender, usernameReceiver) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const t = yield this.getContactsOrInvitationsOrDiscussionFromUserCollection(contactOrInvitation, usernameSender);
+            const j = yield this.getUserId(usernameReceiver);
+            if (t.length === 0) {
+                return 0;
+            }
+            else {
+                let k = 0;
+                for (let i = 0; i < t.length; i++) {
+                    if (t[i].idUser === j) {
+                        k++;
+                    }
+                }
+                return yield k;
+            }
+        });
+    }
+    deleteInvitationsOrContacts(contactOrInvitation, usernameSender, usernameReceiver) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const iDSender = yield this.getUserId(usernameSender);
+            const iDReceiver = yield this.getUserId(usernameReceiver);
+            //const i = await this.getContactsOrInvitationsOrDiscussionFromUserCollection('contacts',usernameSender);
+            if (contactOrInvitation === 'contact') {
+                yield this.database.collection('users')
+                    .update({ _id: iDSender }, { $pull: { contacts: { idUser: iDReceiver } } });
+            }
+            if (contactOrInvitation === 'invitation') {
+                yield this.database.collection('users')
+                    .update({ _id: iDSender }, { $pull: { invitations: { idUser: iDReceiver } } });
+            }
         });
     }
     addInvitationsInUsersCollection(usernameSender, usernameReceiver) {
@@ -89,15 +144,15 @@ class DbModel {
             return iD[0]._id;
         });
     }
-    createDiscussion(usernameSender, usernameReceiver) {
+    createDiscussion(usernameSender, idContact) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('on entre dans la fonction dbModel createDiscussion');
             const iDSender = yield this.getUserId(usernameSender);
-            const iDReceiver = yield this.getUserId(usernameReceiver);
+            //const iDReceiver = await this.getUserId(usernameReceiver);
             const id_discussion = yield this.getCountersIdwithIncrementation('idIncrementDiscussion');
             yield this.database.collection('Discussions')
-                .insertOne({ _id: id_discussion[0].sequence_value, users: [iDSender, iDReceiver], history: [] });
-            console.log('dbModel id_discussion' + id_discussion + 'créée');
+                .insertOne({ _id: id_discussion[0].sequence_value, users: [iDSender, idContact], history: [] });
+            console.log('dbModel id_discussion' + id_discussion[0].sequence_value + 'créée');
             return id_discussion[0].sequence_value;
         });
     }

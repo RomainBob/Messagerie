@@ -16,7 +16,7 @@ export class DiscussionsListComponent {
     this.service.sendFetchDiscussion(discussion.id);
   }
 
-  private quitDiscussion(discussionId: number) {
+  private quitDiscussion(discussionId: string) {
     this.service.sendQuitDiscussion();
   }
 }

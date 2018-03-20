@@ -12,14 +12,14 @@ export class Server {
         this.addWebSocketServer(server);
     }
        
-    public broadcastInstantMessage(discussionId: string, content: string, author: string, participants: string[]): void {
+    async broadcastInstantMessage(discussionId: string, content: string, author: string, participants: string[]){
         const date = new Date();
         for (const client of this.clients) {
             if (!(participants.indexOf(client.getUserName())===-1))
               client.sendInstantMessage(content, author, date);
         }
-        this.db.addMessageInHistory(discussionId, content, author, date);
-    }
+        await this.db.addMessageInHistory(discussionId, content, author, date);
+      }
     
     public broadcastUsersList(): void {
         for (const client of this.clients) {
@@ -34,12 +34,27 @@ export class Server {
         }
     }
     
-    public broadcastContact(dest, username){
+   public broadcastContact(dest: string , username: string ){
         for(const client of this.clients){
             if (client.getUserName() === dest)
                client.sendContact(dest, username);
         }
     }
+    public broadcastOkInvitation(contact: string , username: string ){
+        for(const client of this.clients){
+            if (client.getUserName() === username)
+               client.sendOkInviation( contact );
+        }
+
+    }
+    /*public broadcastRemoveInviation(invitaion: string, username: string ){
+        for(const client of this.clients){
+            if (client.getUserName() === username)
+               client.sendRemoveInvitation(invitaion );
+        }
+
+
+    }*/
 
     public broadcastUserConnection(connection: string, username: string): void {
         switch (connection) {

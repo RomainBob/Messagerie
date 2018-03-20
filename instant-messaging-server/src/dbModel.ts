@@ -17,21 +17,75 @@ export class DbModel {
         const hash = await this.hashPassword(password);
         await this.database.collection('users')
         .insertOne({_id:i[0].sequence_value, username: username, password: hash, mail: mail,
-                contacts:[1,2], invitations:[], id_discussion:[] }); // attention TEST sur contact
+                contacts:[], invitations:[], id_discussion:[] }); // attention TEST sur contact
     }
-
+    async getContactsOrInvitationsOrDiscussionFromUserCollection (contactOrInvitation, username: string): Promise<any>{
+        const id_user = await this.getUserId(username);
+        const userDocument = await this.database.collection('users').find({_id: id_user}).toArray();
+        if (contactOrInvitation == 'contacts'){
+            return userDocument[0].contacts;
+        }
+        if (contactOrInvitation == 'invitations'){
+            return userDocument[0].invitations;
+        }
+        if (contactOrInvitation == 'id_discussion'){
+            return userDocument[0].id_discussion;
+        }      
+        
+    }
     async addContactsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
         const iDSender = await this.getUserId(usernameSender);
         const iDReceiver = await this.getUserId(usernameReceiver);
         await this.database.collection('users')
         .update({_id : iDSender}, {$push: {contacts:{idUser: iDReceiver}}});
     }
-
-    async addContact (usernameSender: string): Promise<void> {
+    async addContactsOrInvitationsInUsersCollection (contactOrInvitation, usernameSender: string, usernameReceiver: string): Promise<void> {
         const iDSender = await this.getUserId(usernameSender);
-        await this.database.collection('users')
-        .update({_id : iDSender}, {$push: {contacts:{idUser: 'toutou'}}});
+        const iDReceiver = await this.getUserId(usernameReceiver);
+
+        if (contactOrInvitation == 'contacts'){
+            await this.database.collection('users')
+            .update({_id : iDSender}, {$push: {contacts:{idUser: iDReceiver}}});
+        }
+        if (contactOrInvitation == 'invitations'){
+            await this.database.collection('users')
+            .update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
+        }        
     }
+
+    async verifyIfExistInContact_Invitation (contactOrInvitation: string, usernameSender: string, usernameReceiver: string): Promise <any> {
+        const t = 
+            await this.getContactsOrInvitationsOrDiscussionFromUserCollection (contactOrInvitation, usernameSender);
+        const j = await this.getUserId(usernameReceiver);
+
+        if(t.length === 0){
+            return 0;
+        }
+        else{
+            let k = 0;
+            for (let i = 0; i < t.length; i++ ){
+                if(t[i].idUser === j){
+                    k++;
+                }           
+            }
+        return await k;
+        }
+    }
+
+    async deleteInvitationsOrContacts(contactOrInvitation, usernameSender: string, usernameReceiver: string): Promise<void> {
+        const iDSender = await this.getUserId(usernameSender);
+        const iDReceiver = await this.getUserId(usernameReceiver);
+        //const i = await this.getContactsOrInvitationsOrDiscussionFromUserCollection('contacts',usernameSender);
+        if (contactOrInvitation === 'contact'){
+            await this.database.collection('users')
+            .update({_id : iDSender}, {$pull:{contacts:{idUser: iDReceiver}}});
+        }
+        if (contactOrInvitation === 'invitation'){
+            await this.database.collection('users')
+            .update({_id : iDSender}, {$pull: {invitations:{idUser: iDReceiver}}});
+        }        
+    }
+
 
     async addInvitationsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
         const iDSender = await this.getUserId(usernameSender);
@@ -40,7 +94,7 @@ export class DbModel {
         .update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
     }
 
-    async addDiscussionIdToUser(username: string, id_discussion: number): Promise<void> {
+    async addDiscussionIdToUser(username: string, id_discussion: string): Promise<void> {
         const id = await this.getUserId(username);
         await this.database.collection('users')
         .update({_id : id}, {$push: {id_discussion:{id: id_discussion}}});
@@ -74,14 +128,14 @@ export class DbModel {
         return iD[0]._id;
     }
 
-    async createDiscussion(usernameSender: string, usernameReceiver: string): Promise<any> {
+    async createDiscussion(usernameSender: string, idContact: string): Promise<any> {
         console.log('on entre dans la fonction dbModel createDiscussion');
         const iDSender = await this.getUserId(usernameSender);
-        const iDReceiver = await this.getUserId(usernameReceiver);
+        //const iDReceiver = await this.getUserId(usernameReceiver);
         const id_discussion = await this.getCountersIdwithIncrementation('idIncrementDiscussion');
         await this.database.collection('Discussions')
-        .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, iDReceiver], history:[]});  
-        console.log('dbModel id_discussion' +id_discussion +'créée');
+        .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, idContact], history:[]});  
+        console.log('dbModel id_discussion' +id_discussion[0].sequence_value +'créée');
         return id_discussion[0].sequence_value;
     }
 
