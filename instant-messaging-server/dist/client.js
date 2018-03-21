@@ -15,6 +15,7 @@ class Client {
         this.db = db;
         this.usernameRegex = /^[a-zA-Z0-9]*$/;
         this.username = null;
+        this.userId = null;
         connection.on('message', (message) => this.onMessage(message.utf8Data));
         connection.on('close', () => server.removeClient(this));
         connection.on('close', () => server.broadcastUsersList());
@@ -36,7 +37,7 @@ class Client {
     }
     sendOwnUser(username) {
         return __awaiter(this, void 0, void 0, function* () {
-            const userId = yield this.db.getUserId(username);
+            const userId = this.userId;
             const invitations = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('invitations', username);
             const con = yield this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('contacts', username);
             const contacts = [];
@@ -64,18 +65,9 @@ class Client {
             }
         });
     }
-    /*public sendRemoveInvitation(removeInvitation: string ){
-        this.sendMessage('removeInvitation', removeInvitation);
-            this.db.remooveInvitation(invitation, this.username);
-
-    }*/
     sendContact(dest, username) {
         const contact = [dest, username];
         this.sendMessage('contact', contact);
-    }
-    sendOkInviation(contact) {
-        const okInvitation = contact;
-        this.sendMessage('okInvitation', okInvitation);
     }
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
@@ -94,7 +86,6 @@ class Client {
         return __awaiter(this, void 0, void 0, function* () {
             this.sendMessage('removeInvitation', invitation);
             yield this.db.deleteInvitationsOrContacts('invitation', invitation, this.username);
-            /* this.server.broadcastRemoveInviation(invitation, this.username);*/
         });
     }
     onContact(dest) {
@@ -108,7 +99,10 @@ class Client {
         });
     }
     onOkInvitation(contact) {
-        this.server.broadcastOkInvitation(contact, this.username);
+        return __awaiter(this, void 0, void 0, function* () {
+            const okInvitation = contact;
+            this.sendMessage('okInvitation', okInvitation);
+        });
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -122,6 +116,8 @@ class Client {
                 else {
                     this.username = username;
                     this.sendMessage('login', 'ok');
+                    this.userId = yield this.db.getUserId(username);
+                    console.log("userid" + this.userId);
                     this.sendOwnUser(username);
                     this.server.broadcastUsersList();
                     this.server.broadcastUserConnection('connection', username);
@@ -154,7 +150,6 @@ class Client {
     onMessage(utf8Data) {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
-            //case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
             case 'instant_message':
                 this.onInstantMessage(message.data.discussionId, message.data.content, message.data.participants);
                 break;
@@ -216,7 +211,7 @@ class Client {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('ajout participant a' + discussionId);
             yield this.db.addDiscussionIdToUser(contactId, discussionId);
-            //        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
+            yield this.db.addParticipantInDiscussion(discussionId, contactId); // doit trier les participants ?
             // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
             //        this.onFetchDiscussion(discussionId);
         });
@@ -224,12 +219,16 @@ class Client {
     onQuitDiscussion(discussionId) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('quitte discussion' + discussionId);
-            //        this.db.pullParticipant(discussionId, this.username)); 2 méthodes
+            yield this.db.deleteParticipantFromDiscussion(this.userId, discussionId);
+            yield this.db.deleteDiscussionFromUser(discussionId, this.userId);
             //        récupérer les infos liste des discussions
         });
     }
     getUserName() {
         return this.username;
+    }
+    getUserId() {
+        return this.userId;
     }
 }
 exports.Client = Client;

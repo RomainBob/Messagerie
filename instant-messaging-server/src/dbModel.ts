@@ -94,12 +94,6 @@ export class DbModel {
         .update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
     }
 
-    async addDiscussionIdToUser(username: string, id_discussion: string): Promise<void> {
-        const id = await this.getUserId(username);
-        await this.database.collection('users')
-        .update({_id : id}, {$push: {id_discussion:{id: id_discussion}}});
-    }
-
     async getContactUser (username: string): Promise<any> {
         const contact =  await this.database.collection('users').find({username:username}).toArray();
         return contact[0].contacts;
@@ -137,6 +131,24 @@ export class DbModel {
         .insertOne({_id:id_discussion[0].sequence_value, users:[iDSender, idContact], history:[]});  
         console.log('dbModel id_discussion' +id_discussion[0].sequence_value +'créée');
         return id_discussion[0].sequence_value;
+    }
+
+    async addDiscussionIdToUser(username: string, id_discussion: string): Promise<void> {
+        const id = await this.getUserId(username);
+        await this.database.collection('users')
+        .update({_id : id}, {$push: {id_discussion:{id: id_discussion}}});
+    }
+
+    async deleteDiscussionFromUser(userId, id_discussion: string):Promise <void> {
+        await this.database.collection('users').update({_id : userId}, {$pull: {id_discussion:id_discussion}});
+    }
+
+    async addParticipantInDiscussion(id_discussion: string, userId): Promise <void> {
+        await this.database.collection('Discussions').update({_id : id_discussion}, {$push: {users:userId}});
+    }
+
+    async deleteParticipantFromDiscussion(id_discussion: string,userId):Promise <void> {
+        await this.database.collection('Discussions').update({_id : id_discussion}, {$pull: {users:userId}});
     }
 
     async addMessageInHistory(id_discussion: string, content: string, author: string, date: Date): Promise<void> {
@@ -207,16 +219,5 @@ export class DbModel {
         }
     }
 
-    /*
-    async addMessage(content: string, author: string, date: Date): Promise<void> {
-        await this.database.collection('messages').insertOne({ content: content, author: author, date: date });
-    }
 
-    
-    async message(): Promise <string[]> {
-      return this.database.collection('messages').find().toArray();
-    }
-
-    */
-    
 }

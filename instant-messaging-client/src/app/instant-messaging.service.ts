@@ -69,21 +69,20 @@ export class InstantMessagingService {
     this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
   }
 
-  private onInvitation(invitation: string[]) {
-    this.invitations.push(invitation[1]);
-    console.log(this.invitations);
-  }
-
- public  onDestContact(contact: string[]) {
-    this.contacts.push(contact[1]);
-    console.log(this.contacts);
-  }
-
-  public  onContact(contact: string  ) {
-    this.contacts.push(contact);
-    console.log(this.contacts);
+    private onInvitation(invitation: string[]) {
+      this.invitations.push(invitation[1]);
+      console.log(this.invitations);
+    }
+  
+   private   onContact(contact: string[]) {
+      this.contacts.push(contact[1]);
+      console.log(this.contacts);
     }
 
+    private onOkInvitation(contact: string  ) {
+      this.contacts.push(contact);
+      console.log(this.contacts);
+      }
   private onMessage(data: string) {
     const message = JSON.parse(data);
     switch (message.type) {
@@ -94,7 +93,9 @@ export class InstantMessagingService {
       case 'disconnection': this.onDisconnection(message.data); break;
       case 'subscription': this.onSubscription(message.data); break;
       case 'invitation': this.onInvitation(message.data); break;
-      case 'contact': this.onDestContact(message.data); break;
+      case 'contact': this.onContact(message.data); break;
+      case 'okInvitation': this.onOkInvitation(message.data); break;
+      case 'removeInvitation': this.removeInvitation(message.data); break;
       case 'discussion' : this.onFetchDiscussion(message.data); break;
       case 'ownUser': this.onOwnUser(message.data); break;
     }
@@ -111,9 +112,7 @@ export class InstantMessagingService {
     this.invitations.splice(index, 1);
   }
 
-  public sendRemooveInvitation(invitation: string) {
-    this.sendMessage('removeInvitation', invitation);
-  }
+  
 
   public getMessages(): InstantMessage[] {
     return this.messages;
@@ -161,6 +160,12 @@ export class InstantMessagingService {
   public sendContact(contact: string) {
     this.sendMessage('contact', contact);
   }
+  public sendRemoveInvitation(invitation: string) {
+    this.sendMessage('removeInvitation', invitation);
+  }
+  public sendOkInvitation (okInvitation: string ) {
+    this.sendMessage('okInvitation', okInvitation);
+ }
 
   public sendFetchDiscussion(discussionId: string) {
     console.log('sendFetchDiscussion' + discussionId);

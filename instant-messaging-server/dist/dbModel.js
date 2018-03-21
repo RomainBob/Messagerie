@@ -106,13 +106,6 @@ class DbModel {
                 .update({ _id: iDSender }, { $push: { invitations: { idUser: iDReceiver } } });
         });
     }
-    addDiscussionIdToUser(username, id_discussion) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const id = yield this.getUserId(username);
-            yield this.database.collection('users')
-                .update({ _id: id }, { $push: { id_discussion: { id: id_discussion } } });
-        });
-    }
     getContactUser(username) {
         return __awaiter(this, void 0, void 0, function* () {
             const contact = yield this.database.collection('users').find({ username: username }).toArray();
@@ -154,6 +147,28 @@ class DbModel {
                 .insertOne({ _id: id_discussion[0].sequence_value, users: [iDSender, idContact], history: [] });
             console.log('dbModel id_discussion' + id_discussion[0].sequence_value + 'créée');
             return id_discussion[0].sequence_value;
+        });
+    }
+    addDiscussionIdToUser(username, id_discussion) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const id = yield this.getUserId(username);
+            yield this.database.collection('users')
+                .update({ _id: id }, { $push: { id_discussion: { id: id_discussion } } });
+        });
+    }
+    deleteDiscussionFromUser(userId, id_discussion) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.database.collection('users').update({ _id: userId }, { $pull: { id_discussion: id_discussion } });
+        });
+    }
+    addParticipantInDiscussion(id_discussion, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.database.collection('Discussions').update({ _id: id_discussion }, { $push: { users: userId } });
+        });
+    }
+    deleteParticipantFromDiscussion(id_discussion, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.database.collection('Discussions').update({ _id: id_discussion }, { $pull: { users: userId } });
         });
     }
     addMessageInHistory(id_discussion, content, author, date) {

@@ -40,22 +40,7 @@ export class Server {
                client.sendContact(dest, username);
         }
     }
-    public broadcastOkInvitation(contact: string , username: string ){
-        for(const client of this.clients){
-            if (client.getUserName() === username)
-               client.sendOkInviation( contact );
-        }
-
-    }
-    /*public broadcastRemoveInviation(invitaion: string, username: string ){
-        for(const client of this.clients){
-            if (client.getUserName() === username)
-               client.sendRemoveInvitation(invitaion );
-        }
-
-
-    }*/
-
+   
     public broadcastUserConnection(connection: string, username: string): void {
         switch (connection) {
             case 'connection': for (const client of this.clients) {

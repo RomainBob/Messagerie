@@ -46,20 +46,6 @@ class Server {
                 client.sendContact(dest, username);
         }
     }
-    broadcastOkInvitation(contact, username) {
-        for (const client of this.clients) {
-            if (client.getUserName() === username)
-                client.sendOkInviation(contact);
-        }
-    }
-    /*public broadcastRemoveInviation(invitaion: string, username: string ){
-        for(const client of this.clients){
-            if (client.getUserName() === username)
-               client.sendRemoveInvitation(invitaion );
-        }
-
-
-    }*/
     broadcastUserConnection(connection, username) {
         switch (connection) {
             case 'connection':

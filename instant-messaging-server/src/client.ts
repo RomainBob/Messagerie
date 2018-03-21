@@ -5,6 +5,7 @@ import { DbModel } from "./dbModel";
 export class Client {
     private usernameRegex = /^[a-zA-Z0-9]*$/;
     private username: string = null;
+    private userId: string = null;
 
     public constructor(private server: Server, private connection: WebSocketConnection, private db: DbModel) {
         connection.on('message', (message)=>this.onMessage(message.utf8Data));
@@ -31,7 +32,7 @@ export class Client {
     }
 
     async sendOwnUser(username: string){
-        const userId = await this.db.getUserId(username);
+        const userId = this.userId;
         const invitations = 
         await this.db.getContactsOrInvitationsOrDiscussionFromUserCollection('invitations', username);
         const con = 
@@ -52,8 +53,6 @@ export class Client {
         if (dest===username)return;
         const invitation = [dest, username];
         this.sendMessage('invitation', invitation);
-        
-
         const usernameInvitations = await this.db.getContactsOrInvitationsOrDiscussionFromUserCollection ('invitations', this.username);
         const id_dest = await this.db.getUserId(dest);
 
@@ -62,21 +61,11 @@ export class Client {
             await this.db.addContactsOrInvitationsInUsersCollection ("invitations", username, dest);
         }
     }
-
-    /*public sendRemoveInvitation(removeInvitation: string ){
-        this.sendMessage('removeInvitation', removeInvitation);
-            this.db.remooveInvitation(invitation, this.username);
-
-    }*/
     public  sendContact(dest: string , username: string ) {
        const contact = [dest, username];
        this.sendMessage('contact', contact);
     }
-    public sendOkInviation(contact: string ){
-        const okInvitation = contact;
-        this.sendMessage( 'okInvitation', okInvitation);
-    }
-
+  
     public sendUserConnection(connection: string, username: string){
         this.sendMessage(connection, username);
     }
@@ -93,8 +82,7 @@ export class Client {
     async removeInvitaion(invitation){
         this.sendMessage('removeInvitation', invitation);
         await this.db.deleteInvitationsOrContacts ('invitation',  invitation, this.username);
-       /* this.server.broadcastRemoveInviation(invitation, this.username);*/
-    }
+   }
 
     
     async onContact(dest) {
@@ -107,10 +95,11 @@ export class Client {
         
         this.server.broadcastContact(dest, this.username);
     }
-    private onOkInvitation(contact){
-        this.server.broadcastOkInvitation(contact, this.username);
-    }
 
+    async onOkInvitation(contact){
+        const okInvitation = contact;
+        this.sendMessage( 'okInvitation', okInvitation);
+    }
 
     async onUserLogin(username, password) {
         const i = await this.db.checkIfUserExists(username);
@@ -122,6 +111,8 @@ export class Client {
             } else {
             this.username = username;
             this.sendMessage('login', 'ok');
+            this.userId = await this.db.getUserId(username);
+            console.log("userid" + this.userId);
             this.sendOwnUser(username);
             this.server.broadcastUsersList();
             this.server.broadcastUserConnection('connection', username); 
@@ -152,7 +143,6 @@ export class Client {
     private onMessage(utf8Data: string): void {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
-            //case 'instant_message': this.onInstantMessage(message.data.content, message.data.participants); break;
             case 'instant_message': this.onInstantMessage(message.data.discussionId, message.data.content, message.data.participants); break;
             case 'userSubscription': this.onUserSubscription(message.data.username, message.data.password, message.data.mail); break;
             case 'userLogin': this.onUserLogin(message.data.username, message.data.password); break;
@@ -191,14 +181,15 @@ export class Client {
     async onAddParticipant(discussionId: string, contactId: string) {
         console.log('ajout participant a' + discussionId);
         await this.db.addDiscussionIdToUser(contactId, discussionId);
-//        this.db.pushParticipant(discussionId, contactId)) doit trier les participants
+        await this.db.addParticipantInDiscussion(discussionId, contactId);// doit trier les participants ?
 // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
 //        this.onFetchDiscussion(discussionId);
     }
 
     async onQuitDiscussion(discussionId: string) {
         console.log('quitte discussion' + discussionId);
-//        this.db.pullParticipant(discussionId, this.username)); 2 méthodes
+        await this.db.deleteParticipantFromDiscussion(this.userId, discussionId);
+        await this.db.deleteDiscussionFromUser(discussionId, this.userId)
 //        récupérer les infos liste des discussions
     }
 
@@ -206,6 +197,8 @@ export class Client {
         return this.username;
     }
 
-
+    public getUserId(){
+        return this.userId;
+    }
 }
 
