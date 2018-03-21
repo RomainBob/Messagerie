@@ -2,6 +2,7 @@ import {server as WebSocketServer, connection as WebSocketConnection} from 'webs
 import * as http from 'http';
 import { Client } from "./client";
 import { DbModel } from "./dbModel";
+import { Discussion } from '../../instant-messaging-client/src/app/discussion';
 
 export class Server {
     private clients: Client[] = []
@@ -39,8 +40,16 @@ export class Server {
             if (client.getUserName() === dest)
                client.sendContact(dest, username);
         }
+    } 
+
+   async broadcastFetchDiscussion(discussionId){
+        const participants = await this.db.getParticipants(discussionId);
+        for (const client of this.clients){
+            if (!(participants.indexOf(client.getUserId()) == -1))
+                client.onFetchDiscussion(discussionId);
+        }
     }
-   
+
     public broadcastUserConnection(connection: string, username: string): void {
         switch (connection) {
             case 'connection': for (const client of this.clients) {

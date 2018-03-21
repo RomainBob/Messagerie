@@ -159,16 +159,15 @@ export class Client {
     async onAddParticipant(discussionId: string, contactId: string) {
         console.log('client.ts ajout participant a la discussion ' + discussionId);
         await this.db.addDiscussionIdToUser(contactId, discussionId);
-        await this.db.addParticipantInDiscussion(discussionId, contactId);// doit trier les participants ?
-// l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
-//        this.onFetchDiscussion(discussionId);
+        await this.db.addParticipantInDiscussion(discussionId, contactId);
+        this.server.broadcastFetchDiscussion(discussionId);
     }
 
     async onQuitDiscussion(discussionId: string) {
         console.log('quitte discussion' + discussionId);
         await this.db.deleteParticipantFromDiscussion(this.userId, discussionId);
         await this.db.deleteDiscussionFromUser(discussionId, this.userId)
-//        récupérer les infos liste des discussions
+        this.server.broadcastFetchDiscussion(discussionId);
     }
 
     private onMessage(utf8Data: string): void {

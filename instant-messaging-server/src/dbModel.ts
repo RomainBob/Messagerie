@@ -193,12 +193,12 @@ export class DbModel {
 
     async createCountersDiscussion(): Promise<void> {
         await this.database.collection('idIncrementDiscussion').insertOne({_id:"tid",sequence_value:0});
-
     }
 
     async getCountersIdwithOutIncrementation(collection: string): Promise <any> {
         return await this.database.collection(collection).find().toArray();       
     }
+
     async getCountersIdwithIncrementation(collection: string): Promise <any> {
         try{
             await this.updateId(collection);
@@ -207,6 +207,7 @@ export class DbModel {
             console.log('error: '+e);
         }
     }
+    
     async updateId(collection: string): Promise <void>{
         try{
         await this.database.collection(collection).updateOne(
