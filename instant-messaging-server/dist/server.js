@@ -23,7 +23,7 @@ class Server {
         return __awaiter(this, void 0, void 0, function* () {
             const date = new Date();
             for (const client of this.clients) {
-                if (!(participants.indexOf(client.getUserName()) === -1))
+                if (!(participants.indexOf(client.getUserId()) === -1))
                     client.sendInstantMessage(content, author, date);
             }
             yield this.db.addMessageInHistory(discussionId, content, author, date);

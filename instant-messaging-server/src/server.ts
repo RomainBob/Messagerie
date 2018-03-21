@@ -15,7 +15,7 @@ export class Server {
     async broadcastInstantMessage(discussionId: string, content: string, author: string, participants: string[]){
         const date = new Date();
         for (const client of this.clients) {
-            if (!(participants.indexOf(client.getUserName())===-1))
+            if (!(participants.indexOf(client.getUserId())===-1))
               client.sendInstantMessage(content, author, date);
         }
         await this.db.addMessageInHistory(discussionId, content, author, date);

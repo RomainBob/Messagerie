@@ -32,8 +32,6 @@ class Client {
     sendInstantMessage(content, author, date) {
         const instantMessage = { content: content, author: author, date: date };
         this.sendMessage('instant_message', instantMessage);
-        console.log('addMessage succeded...');
-        //this.db.addMessage(content, author, date);   
     }
     sendOwnUser(username) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -71,38 +69,6 @@ class Client {
     }
     sendUserConnection(connection, username) {
         this.sendMessage(connection, username);
-    }
-    onInstantMessage(discussionId, content, participants) {
-        if (!(typeof 'content' === 'string'))
-            return;
-        if (this.username == null)
-            return;
-        this.server.broadcastInstantMessage(discussionId, content, this.username, participants);
-    }
-    onInvitation(dest) {
-        this.server.broadcastInvitation(dest, this.username);
-    }
-    removeInvitaion(invitation) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.sendMessage('removeInvitation', invitation);
-            yield this.db.deleteInvitationsOrContacts('invitation', invitation, this.username);
-        });
-    }
-    onContact(dest) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const b = yield this.db.verifyIfExistInContact_Invitation('contacts', this.username, dest);
-            if (b === 0) {
-                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", this.username, dest);
-                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", dest, this.username);
-            }
-            this.server.broadcastContact(dest, this.username);
-        });
-    }
-    onOkInvitation(contact) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const okInvitation = contact;
-            this.sendMessage('okInvitation', okInvitation);
-        });
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -147,6 +113,77 @@ class Client {
             }
         });
     }
+    onInstantMessage(discussionId, content, participants) {
+        if (!(typeof 'content' === 'string'))
+            return;
+        if (this.username == null)
+            return;
+        this.server.broadcastInstantMessage(discussionId, content, this.username, participants);
+    }
+    onInvitation(dest) {
+        this.server.broadcastInvitation(dest, this.username);
+    }
+    removeInvitation(invitation) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.sendMessage('removeInvitation', invitation);
+            yield this.db.deleteInvitationsOrContacts('invitation', invitation, this.username);
+        });
+    }
+    onOkInvitation(contact) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const okInvitation = contact;
+            this.sendMessage('okInvitation', okInvitation);
+        });
+    }
+    onContact(dest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const b = yield this.db.verifyIfExistInContact_Invitation('contacts', this.username, dest);
+            if (b === 0) {
+                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", this.username, dest);
+                yield this.db.addContactsOrInvitationsInUsersCollection("contacts", dest, this.username);
+            }
+            this.server.broadcastContact(dest, this.username);
+        });
+    }
+    onCreateDiscussion(contact) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('client.ts on entre dans la fonction onCreateDiscussion avec ' + this.username + '' + contact);
+            const discussionId = yield this.db.createDiscussion(this.username, contact);
+            console.log('a créé la disc ' + discussionId + ' et va la recharger');
+            this.onFetchDiscussion(discussionId);
+            console.log('a chargé la disc ' + discussionId + '; client.ts onCreateDiscussion ' + contact + ' terminé');
+            yield this.db.addDiscussionIdToUser(this.username, discussionId);
+            yield this.db.addDiscussionIdToUser(contact, discussionId);
+        });
+    }
+    onFetchDiscussion(discussionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('client.ts on entre dans la fonction onFetchDiscussion ' + discussionId);
+            const participants = yield this.db.getParticipants(discussionId);
+            console.log('client.ts FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0] + participants[1]);
+            const history = yield this.db.getHistory(discussionId);
+            console.log('client.ts FetchDiscussion ' + discussionId + ' : trouve historique');
+            const discussion = { discussionId, participants, history };
+            this.sendMessage('discussion', discussion);
+        });
+    }
+    onAddParticipant(discussionId, contactId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('client.ts ajout participant a la discussion ' + discussionId);
+            yield this.db.addDiscussionIdToUser(contactId, discussionId);
+            yield this.db.addParticipantInDiscussion(discussionId, contactId); // doit trier les participants ?
+            // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
+            //        this.onFetchDiscussion(discussionId);
+        });
+    }
+    onQuitDiscussion(discussionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('quitte discussion' + discussionId);
+            yield this.db.deleteParticipantFromDiscussion(this.userId, discussionId);
+            yield this.db.deleteDiscussionFromUser(discussionId, this.userId);
+            //        récupérer les infos liste des discussions
+        });
+    }
     onMessage(utf8Data) {
         const message = JSON.parse(utf8Data);
         switch (message.type) {
@@ -162,20 +199,20 @@ class Client {
             case 'invitation':
                 this.onInvitation(message.data);
                 break;
-            case 'contact':
-                this.onContact(message.data);
-                break;
             case 'okInvitation':
                 this.onOkInvitation(message.data);
                 break;
-            case 'discussion':
-                this.onFetchDiscussion(message.data);
+            case 'removeInvitation':
+                this.removeInvitation(message.data);
+                break;
+            case 'contact':
+                this.onContact(message.data);
                 break;
             case 'createDiscussion':
                 this.onCreateDiscussion(message.data);
                 break;
-            case 'removeInvitation':
-                this.removeInvitaion(message.data);
+            case 'discussion':
+                this.onFetchDiscussion(message.data);
                 break;
             case 'addParticipant':
                 this.onAddParticipant(message.data.discussionId, message.data.contactId);
@@ -184,45 +221,6 @@ class Client {
                 this.onQuitDiscussion(message.data);
                 break;
         }
-    }
-    onFetchDiscussion(discussionId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('on entre dans la fonction onFetchDiscussion ' + discussionId);
-            const participants = yield this.db.getParticipants(discussionId);
-            console.log('FetchDiscussion ' + discussionId + ' : trouve participants' + participants[0] + participants[1]);
-            const history = yield this.db.getHistory(discussionId);
-            console.log('FetchDiscussion ' + discussionId + ' : trouve historique');
-            const discussion = { discussionId, participants, history };
-            this.sendMessage('discussion', discussion);
-        });
-    }
-    onCreateDiscussion(contact) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('on entre dans la fonction onCreateDiscussion avec ' + this.username + '' + contact);
-            const discussionId = yield this.db.createDiscussion(this.username, contact);
-            console.log('a créé la disc et va la recharger ' + discussionId);
-            this.onFetchDiscussion(discussionId);
-            console.log('a chargé la disc ' + discussionId + '; onCreateDiscussion ' + contact + ' terminé');
-            yield this.db.addDiscussionIdToUser(this.username, discussionId);
-            yield this.db.addDiscussionIdToUser(contact, discussionId);
-        });
-    }
-    onAddParticipant(discussionId, contactId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('ajout participant a' + discussionId);
-            yield this.db.addDiscussionIdToUser(contactId, discussionId);
-            yield this.db.addParticipantInDiscussion(discussionId, contactId); // doit trier les participants ?
-            // l'envoyer coté serveur pour qu'il rafraichisse la discussion de tous les participants
-            //        this.onFetchDiscussion(discussionId);
-        });
-    }
-    onQuitDiscussion(discussionId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('quitte discussion' + discussionId);
-            yield this.db.deleteParticipantFromDiscussion(this.userId, discussionId);
-            yield this.db.deleteDiscussionFromUser(discussionId, this.userId);
-            //        récupérer les infos liste des discussions
-        });
     }
     getUserName() {
         return this.username;
