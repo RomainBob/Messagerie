@@ -1,6 +1,6 @@
 import { Component} from '@angular/core';
 import { InstantMessagingService } from '../instant-messaging.service';
-import { DiscussionsListItem } from '../discussions-list-item';
+import { DiscussionParticipantsNames } from '../discussion-participants-names';
 
 
 @Component({
@@ -12,7 +12,12 @@ export class DiscussionsListComponent {
 
   constructor(private service: InstantMessagingService) { }
 
-  private onSelect(discussion: DiscussionsListItem) {
+  private onSelect(discussion: DiscussionParticipantsNames) {
+    console.log(discussion.id);
     this.service.sendFetchDiscussion(discussion.id);
+  }
+
+  private quitDiscussion(discussionId: string) {
+    this.service.sendQuitDiscussion(discussionId);
   }
 }

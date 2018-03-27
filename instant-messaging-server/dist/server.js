@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const websocket_1 = require("websocket");
 const http = require("http");
@@ -11,12 +19,15 @@ class Server {
         const server = this.createAndRunHttpServer(port);
         this.addWebSocketServer(server);
     }
-    broadcastInstantMessage(content, author, participants) {
-        const date = new Date();
-        for (const client of this.clients) {
-            if (!(participants.indexOf(client.getUserName()) === -1))
-                client.sendInstantMessage(content, author, date);
-        }
+    broadcastInstantMessage(discussionId, content, author, participants) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const date = new Date();
+            for (const client of this.clients) {
+                if (!(participants.indexOf(client.getUserId()) === -1))
+                    client.sendInstantMessage(content, author, date);
+            }
+            yield this.db.addMessageInHistory(discussionId, content, author, date);
+        });
     }
     broadcastUsersList() {
         for (const client of this.clients) {
@@ -30,10 +41,35 @@ class Server {
         }
     }
     broadcastContact(dest, username) {
-        for (const client of this.clients) {
-            if (client.getUserName() === dest)
-                client.sendContact(dest, username);
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const client of this.clients) {
+                if (client.getUserName() === dest) {
+                    const userId = yield this.db.getUserId(username);
+                    client.sendContact({ userId, username });
+                    console.log(userId + " " + username);
+                }
+            }
+        });
+    }
+    broadcastCreateDiscussion(contactId, discussionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const client of this.clients) {
+                if (client.getUserId() === contactId) {
+                    client.sendDiscussionsList(contactId);
+                    console.log('mise à jour discussion ' + discussionId);
+                    yield this.db.addDiscussionIdToUser(contactId, discussionId);
+                }
+            }
+        });
+    }
+    broadcastFetchDiscussion(discussionId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const participants = yield this.db.getParticipants(discussionId);
+            for (const client of this.clients) {
+                if (!(participants.indexOf(client.getUserId()) == -1))
+                    client.onFetchDiscussion(discussionId);
+            }
+        });
     }
     broadcastUserConnection(connection, username) {
         switch (connection) {

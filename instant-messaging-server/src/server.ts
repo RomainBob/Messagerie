@@ -12,12 +12,13 @@ export class Server {
         this.addWebSocketServer(server);
     }
        
-    public broadcastInstantMessage(content: string, author: string, participants: string[]): void {
+    async broadcastInstantMessage(discussionId: string, content: string, author: string, participants: string[]){
         const date = new Date();
         for (const client of this.clients) {
-            if (!(participants.indexOf(client.getUserName())===-1))
+            if (!(participants.indexOf(client.getUserId())===-1))
               client.sendInstantMessage(content, author, date);
         }
+        await this.db.addMessageInHistory(discussionId, content, author, date);
       }
     
     public broadcastUsersList(): void {
@@ -33,10 +34,31 @@ export class Server {
         }
     }
     
-    public broadcastContact(dest, username){
+    async broadcastContact(dest: string , username: string ){
         for(const client of this.clients){
-            if (client.getUserName() === dest)
-               client.sendContact(dest, username);
+            if (client.getUserName() === dest){
+                const userId = await this.db.getUserId(username);
+                client.sendContact({userId, username});
+                console.log(userId+" "+username);
+            }
+        }
+    } 
+
+    async broadcastCreateDiscussion(contactId, discussionId){
+        for(const client of this.clients){
+            if (client.getUserId() === contactId){
+                client.sendDiscussionsList(contactId);
+                console.log('mise à jour discussion ' + discussionId);
+                await this.db.addDiscussionIdToUser(contactId, discussionId);
+            }
+        }     
+    }
+
+    async broadcastFetchDiscussion(discussionId){
+        const participants = await this.db.getParticipants(discussionId);
+        for (const client of this.clients){
+            if (!(participants.indexOf(client.getUserId()) == -1))
+                client.onFetchDiscussion(discussionId);
         }
     }
 

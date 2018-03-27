@@ -1,5 +1,6 @@
-export class DiscussionsListItem {
-    constructor(public id: number, public participants: string[]) {
+import { UserIdAndName } from './user-id-and-name';
 
+export class DiscussionsListItem {
+    constructor(public id: string, public participants: UserIdAndName[]) {
      }
   }

@@ -1,47 +1,58 @@
 import { Injectable } from '@angular/core';
 import { InstantMessage } from './instant-message';
 import { RoutingService } from './routing.service';
-import { Discussion } from './discussion'
+import { Discussion } from './discussion';
 import { DiscussionsListItem } from './discussions-list-item';
+import { DiscussionParticipantsNames } from './discussion-participants-names';
+import { DiscussionParticipantsIds } from './discussion-participants-ids';
+import { User } from './user';
+import { UserIdAndName } from './user-id-and-name';
 
 
 @Injectable()
 export class InstantMessagingService {
-  private messages: InstantMessage[] = [];
-  private users: string [] = [];
+  private user: User;
+  private users: string [] = []; // liste des utilisateurs connectés
   private socket: WebSocket;
   private logged: boolean;
   private errorMessage: string;
-  private participants: string [] = [];
   private invitations: string[] = [];
-  private contacts: string [] = [];
+  private contacts: UserIdAndName [] = [];
+  private discussionsList: string[]; // liste des numéros de discussion
+  private discussionsListName: DiscussionParticipantsNames[] = []; // liste des numéros de discussion + nom des participants
+  private discussionsListId: DiscussionParticipantsIds[] = []; // liste des numéros de discussion + id des participants
   private currentDiscussion: Discussion;
-  private discussions: DiscussionsListItem[];
+  private messages: InstantMessage[] = []; // peut être attribut de currentDiscussion, attention au départ
 
-  public askDiscussion(contact: string) {
-    for (const discussion of this.discussions) {
-      if (discussion.participants.length === 2 && !(discussion.participants.indexOf(contact) === -1)) {
-        console.log('discussion trouvee');
-        this.sendFetchDiscussion(discussion.id); //  récupère la première discussion correspondante
-        break;
-      }
-      if (discussion.id === this.discussions[this.discussions.length - 1].id) {
-        console.log('createDiscussion');
-        this.sendCreateDiscussion(contact); // crée la discussion
+  public askDiscussion(contactId: string) {
+    let nbDiscussions = this.discussionsListId.length;
+    if (nbDiscussions === 0) {
+      console.log('discussions vide, en créer avec' + contactId);
+      this.sendCreateDiscussion(contactId);
+    } else {
+      for (const discussion of this.discussionsListId) {
+        console.log(discussion);
+        if (discussion.participantsId.length === 2 && !(discussion.participantsId.indexOf(contactId) === -1)) {
+          console.log('discussion trouvee');
+          this.sendFetchDiscussion(discussion.id); //  récupère la première discussion correspondante
+          break;
+        }
+        nbDiscussions--;
+        if (nbDiscussions === 0) {
+          console.log('discussion pas trouvee, createDiscussion avec ' + contactId);
+          this.sendCreateDiscussion(contactId); // crée la discussion
+        }
       }
     }
   }
 
-/*
-  private onFetchDiscussion(discussion: Discussion){
-    this.currentDiscussion.id = discussion.id;
-    this.currentDiscussion.participants = [];
-    this.currentDiscussion.participants = discussion.participants;
-    this.currentDiscussion.history = [];
-    this.currentDiscussion.history = discussion.history;
-    this.messages = this.currentDiscussion.history; // à suprimeer après refactoring
+  private onFetchDiscussion(discussion: Discussion) {
+    console.log('arrivé dans service onFetchDiscussion, discussion ' + discussion.id);
+    this.currentDiscussion = new Discussion (discussion.id, discussion.participants, discussion.history);
+    console.log('changé currentDiscussion.id' + this.currentDiscussion.id + 'et participants ' + this.currentDiscussion.participants);
+    this.messages = this.currentDiscussion.history; // à supprimer après refactoring
   }
-*/
+
   private onInstantMessage(message: InstantMessage) {
     this.messages.push(message);
     console.log('nouveau message');
@@ -50,6 +61,41 @@ export class InstantMessagingService {
   private onUserStatusChange(userslist: string []) {
     this.users = userslist;
     console.log(this.users);
+  }
+
+  private onOwnUser(user: User) {
+    this.user = user;
+    this.invitations = user.invitations;
+    // this.contacts = [];
+    // this.discussionsList = [];
+    console.log(this.user);
+  }
+
+  private onContactsList(ContactsList: UserIdAndName[]) {
+    this.contacts = ContactsList;
+  }
+
+  private onDiscussionList(discussionsList: DiscussionsListItem[]) {
+    this.discussionsListId = [];
+    this.discussionsListName = [];
+    console.log('discussionsList obtenu onDiscussion ' + discussionsList);
+    for (let i = 0; i < discussionsList.length; i++) {
+      const participantsId: string[] = [];
+      const participantsName: string[] = [];
+      const disc: DiscussionsListItem = discussionsList[i];
+      for (let j = 0; j < disc.participants.length; j++) {
+        const userId = disc.participants[j].userId;
+        const username: string = disc.participants[j].username;
+        participantsId.push(userId);
+        participantsName.push(username);
+      }
+    const discussiontmp: any = discussionsList[i];
+    const id: string = discussiontmp.id;
+    this.discussionsListId.push({id, participantsId});
+    this.discussionsListName.push({id, participantsName});
+    }
+    console.log('discussionListId devient ' + this.discussionsListId);
+    console.log('discussionListname devient ' + this.discussionsListName);
   }
 
   private onConnection(username: string) {
@@ -61,19 +107,23 @@ export class InstantMessagingService {
   }
 
   private onInvitation(invitation: string[]) {
-    this.invitations.push(invitation[1]);
-    console.log(this.invitations);
+      this.invitations.push(invitation[1]);
+      console.log(this.invitations);
   }
 
- public  onDestContact(contact: string[]) {
-    this.contacts.push(contact[1]);
-    console.log(this.contacts);
+  /*
+  private onOkInvitation(contact: string  ) {
+      this.contacts.push(contact);
+      console.log(this.contacts);
   }
+  */
 
-  public  onContact(contact: string  ) {
-    this.contacts.push(contact);
-    console.log(this.contacts);
-    }
+  /*
+  private onContact(contact: string[]) {
+      this.contacts.push(contact[1]);
+      console.log(this.contacts);
+  }
+  */
 
   private onMessage(data: string) {
     const message = JSON.parse(data);
@@ -85,17 +135,18 @@ export class InstantMessagingService {
       case 'disconnection': this.onDisconnection(message.data); break;
       case 'subscription': this.onSubscription(message.data); break;
       case 'invitation': this.onInvitation(message.data); break;
-      case 'contact': this.onDestContact(message.data); break;
-     // case 'discussion' : this.onFetchDiscussion(message.data); break;
+ //     case 'okInvitation': this.onOkInvitation(message.data); break;
+      case 'removeInvitation': this.removeInvitation(message.data); break;
+  //    case 'contact': this.onContact(message.data); break;
+      case 'removeContact': this.removeContact(message.data); break
+      case 'discussion' : this.onFetchDiscussion(message.data); break;
+      case 'ownUser': this.onOwnUser(message.data); break;
+      case 'discussionsList': this.onDiscussionList(message.data); break;
+      case 'contactsList': this.onContactsList(message.data); break;
     }
   }
 
   public constructor(private routing: RoutingService) {
-    this.discussions = [{id: 1, participants: ['toto', 'sophie']},
-    {id: 2, participants: ['serge', 'sophie']},
-    {id: 3, participants: ['serge', 'sophie', 'tristan']},
-    {id: 4, participants: ['toto', 'serge', 'tristan']},
-  ]; // TEST
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
     this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
@@ -122,12 +173,12 @@ export class InstantMessagingService {
     return this.invitations;
   }
 
-  public getContacts(): string[] {
+  public getContacts(): UserIdAndName[] {
     return this.contacts;
   }
 
-  public getDiscussions(): DiscussionsListItem[] {
-    return this.discussions;
+   public getDiscussionsListName(): DiscussionParticipantsNames[] {
+    return this.discussionsListName;
   }
 
   public sendMessage(type: string, data: any) {
@@ -136,8 +187,10 @@ export class InstantMessagingService {
   }
 
   public sendInstantMessage(content: string) {
-    this.participants = this.users;   // liste des destinataires temporairement étendue à tous les utilisateurs connectés
-    const privateMessage = {content : content, participants : this.participants}
+    console.log('service-sendInstantMessage discussionId : ' + this.currentDiscussion.id
+      + ' content : ' + content + ' participants : ' + this.currentDiscussion.participants);
+    const privateMessage = {discussionId : this.currentDiscussion.id,
+      content : content, participants : this.currentDiscussion.participants};
     this.sendMessage('instant_message', privateMessage);
   }
 
@@ -145,17 +198,43 @@ export class InstantMessagingService {
     this.sendMessage('invitation', invitation);
   }
 
+  public sendRemoveInvitation(invitation: string) {
+    this.sendMessage('removeInvitation', invitation);
+  }
+/*
+  public sendOkInvitation (okInvitation: string ) {
+    this.sendMessage('okInvitation', okInvitation);
+  }
+*/
   public sendContact(contact: string) {
     this.sendMessage('contact', contact);
   }
 
-  public sendFetchDiscussion(discussionId: number) {
-    console.log('discussion' + discussionId);
-    this.sendMessage('discussion', discussionId);
-  }
-
   private sendCreateDiscussion(contact: string) {
     this.sendMessage('createDiscussion', contact);
+  }
+
+  public sendFetchDiscussion(id: string) {
+    console.log('sendFetchDiscussion' + id);
+    this.sendMessage('discussion', id);
+  }
+
+  public sendRemoveContact(contact: string) {
+    this.sendMessage('removeContact', contact);
+  }
+
+  public removeContact(contact: string) {
+    const index = this.invitations.indexOf(contact);
+    this.invitations.splice(index, 1);
+  }
+
+  public sendAddParticipant(contact: string) {
+    const addParticipant = {id: this.currentDiscussion.id, contact: contact};
+    this.sendMessage('addParticipant', addParticipant);
+  }
+
+  public sendQuitDiscussion(id: string) {
+    this.sendMessage('quitDiscussion', id);
   }
 
   private onLogin(state: string) {
@@ -181,7 +260,6 @@ export class InstantMessagingService {
       this.routing.goError();
     }
   }
-
 
   public isLogged(): boolean {
     return (this.logged);

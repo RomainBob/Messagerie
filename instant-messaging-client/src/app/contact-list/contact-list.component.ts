@@ -12,5 +12,11 @@ export class ContactListComponent {
 
   private onSelect(contact: string) {
     this.service.askDiscussion(contact);
+    console.log('clique sur ' + contact);
   }
+
+  private addParticipant(contact: string) {
+    this.service.sendAddParticipant(contact);
+  }
+
 }
