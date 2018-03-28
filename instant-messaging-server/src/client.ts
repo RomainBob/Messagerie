@@ -18,38 +18,26 @@ export class Client {
         const message = {type: type, data: data};
         this.connection.send(JSON.stringify(message));
     }
+
+    public sendInstantMessage(content: string, author: string, date: Date) {
+        const instantMessage = { content: content, author: author, date: date };
+        this.sendMessage('instant_message', instantMessage);
+    }
    
     public sendUsersList(content: string[]) {
         const users_list = content;
         this.sendMessage('users_list', users_list);
     }
 
-    public sendInstantMessage(content: string, author: string, date: Date) {
-        const instantMessage = { content: content, author: author, date: date };
-        this.sendMessage('instant_message', instantMessage);
-    }
-
     async sendOwnUser(username: string){
         const userId = this.userId;
-        const inv = 
-        await this.db.getElementsFromUser('invitations', username);
-        const invitations : string[] = [];
-        for (let i = 0; i < inv.length; i++){
-            invitations[i] = await this.db.getUsername(inv[i].idUser);
-            console.log('invitation'+invitations[i]);
-        }   
-        const con = 
-        await this.db.getElementsFromUser('contacts', username);
-        const contacts: string[] = [];
-        for (let i = 0; i < con.length; i++){
-            contacts[i] = con[i].idUser;
-            console.log('contact = '+contacts[i])
-        }
-        const dataUser = {userId, username, invitations};
+        const dataUser = {userId, username};
         this.sendMessage('ownUser', dataUser);
+        await this.sendDiscussionsList();
+        await this.sendContactsList();
     }
 
-    async sendDiscussionsList(userId: string){
+    async sendDiscussionsList(){
         const discussions = 
         await this.db.getElementsFromUser('id_discussion', this.username);
         const discussionsList: any[] =[];
@@ -69,7 +57,7 @@ export class Client {
         this.sendMessage('discussionsList', discussionsList);
     }
 
-    async sendContactsList(userId: string){
+    async sendContactsList(){
         const contacts = 
         await this.db.getElementsFromUser('contacts', this.username);
         const contactsList: any[] =[];
@@ -107,8 +95,8 @@ export class Client {
             this.userId = await this.db.getUserId(username);
             console.log("userid " + this.userId);
             this.sendOwnUser(username);
-            this.sendDiscussionsList(this.userId);
-            this.sendContactsList(this.userId);
+            this.sendDiscussionsList();
+            this.sendContactsList();
             this.server.broadcastUsersList();
             this.server.broadcastUserConnection('connection', username); 
             }
@@ -166,15 +154,14 @@ export class Client {
         await this.db.deleteInvitationsOrContacts ('contacts', this.username, contact);
     }
 
-    async onContact(dest) {
-        const b = await this.db.verifyIfExistInContact_Invitation('contacts', this.username, dest);
+    async onContact(friend) {
+        const b = await this.db.verifyIfExistInContact_Invitation('contacts', this.username, friend);
         if (b === 0){
-            await this.db.addContactsOrInvitationsInUsersCollection ("contacts", this.username, dest);
-            await this.db.addContactsOrInvitationsInUsersCollection ("contacts", dest, this.username);       
+            await this.db.addContactsOrInvitationsInUsersCollection ("contacts", this.username, friend);
+            await this.db.addContactsOrInvitationsInUsersCollection ("contacts", friend, this.username);       
         }
-        this.sendContactsList(this.userId);
-        console.log("sendContactList"+this.userId);
-        this.server.broadcastContact(dest, this.username);
+        this.sendContactsList();
+        this.server.sendFriendContactsList(friend);
     }
 
     async onCreateDiscussion(contactId: string) {
@@ -187,7 +174,7 @@ export class Client {
         console.log('a ajouté la discussion '  + id + ' à ' + this.userId)
         this.server.broadcastCreateDiscussion(contactId, id);
         console.log('a ajouté la discussion '  + id + ' à ' + contactId);
-        this.sendDiscussionsList(this.userId);
+        this.sendDiscussionsList();
     }
 
     async onFetchDiscussion(id: string) {

@@ -40,13 +40,11 @@ class Server {
                 client.sendInvitation(dest, username);
         }
     }
-    broadcastContact(dest, username) {
+    sendFriendContactsList(friend) {
         return __awaiter(this, void 0, void 0, function* () {
             for (const client of this.clients) {
-                if (client.getUserName() === dest) {
-                    const userId = yield this.db.getUserId(username);
-                    client.sendContact({ userId, username });
-                    console.log(userId + " " + username);
+                if (client.getUserName() === friend) {
+                    client.sendContactsList();
                 }
             }
         });
@@ -55,7 +53,7 @@ class Server {
         return __awaiter(this, void 0, void 0, function* () {
             for (const client of this.clients) {
                 if (client.getUserId() === contactId) {
-                    client.sendDiscussionsList(contactId);
+                    client.sendDiscussionsList();
                     console.log('mise à jour discussion ' + discussionId);
                     yield this.db.addDiscussionIdToUser(contactId, discussionId);
                 }
