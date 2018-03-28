@@ -27,12 +27,15 @@ export class Server {
         }
       }
 
-    public broadcastInvitation (dest: string, username: string){
+
+
+    async sendFriendInvitationsList (friend: string){
         for(const client of this.clients){
-            if(client.getUserName()===dest)
-                client.sendInvitation(dest, username);
+            if (client.getUserName() === friend){
+                client.sendInvitationsList();
+            }
         }
-    }
+    } 
     
     async sendFriendContactsList (friend: string){
         for(const client of this.clients){

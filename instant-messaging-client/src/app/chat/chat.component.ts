@@ -5,6 +5,7 @@ import { MatMenuModule } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
 
 @Component({
   selector: 'app-chat',
@@ -13,9 +14,30 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class ChatComponent implements OnInit {
 
-  constructor(private service: InstantMessagingService) { }
+  visibilityInvitation = false;
+  visibilityContact = false;
+  visibilityDiscussion = false;
+
+  private username = '';
+
+  constructor(private service: InstantMessagingService) {
+    this.username = this.service.getUserName();
+   }
 
   ngOnInit() {
   }
+
+  private afficheInvitations(): void {
+    this.visibilityInvitation = !this.visibilityInvitation;
+  }
+
+  private afficheContacts(): void {
+    this.visibilityContact = !this.visibilityContact;
+  }
+
+  private afficheDiscussions(): void {
+    this.visibilityDiscussion = !this.visibilityDiscussion;
+  }
+
 
 }

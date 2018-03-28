@@ -19,7 +19,7 @@ export class DbModel {
         .insertOne({_id:i[0].sequence_value, username: username, password: hash, mail: mail,
                 contacts:[], invitations:[], id_discussion:[] }); // attention TEST sur contact
     }
-    
+
     async getElementsFromUser (contactOrInvitation, username: string): Promise<any>{
         const id_user = await this.getUserId(username);
         const userDocument = await this.database.collection('users').find({_id: id_user}).toArray();
@@ -31,7 +31,7 @@ export class DbModel {
         }
         if (contactOrInvitation == 'id_discussion'){
             return userDocument[0].id_discussion;
-        }      
+        }
     }
 
     async addContactsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
@@ -90,10 +90,10 @@ export class DbModel {
 
 
     //async addInvitationsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
-      //  const iDSender = await this.getUserId(usernameSender);
+        //const iDSender = await this.getUserId(usernameSender);
         //const iDReceiver = await this.getUserId(usernameReceiver);
         //await this.database.collection('users')
-      //  .update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
+        //.update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
     //}
 
     async getContactUser (username: string): Promise<any> {

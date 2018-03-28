@@ -34,11 +34,14 @@ class Server {
             client.sendUsersList(this.getClientsList());
         }
     }
-    broadcastInvitation(dest, username) {
-        for (const client of this.clients) {
-            if (client.getUserName() === dest)
-                client.sendInvitation(dest, username);
-        }
+    sendFriendInvitationsList(friend) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const client of this.clients) {
+                if (client.getUserName() === friend) {
+                    client.sendInvitationsList();
+                }
+            }
+        });
     }
     sendFriendContactsList(friend) {
         return __awaiter(this, void 0, void 0, function* () {

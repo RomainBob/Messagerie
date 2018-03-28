@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { InstantMessagingService } from 'app/instant-messaging.service';
+import { MatListModule } from '@angular/material/list';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 @Component({
   selector: 'app-instant-invitation',
@@ -16,9 +18,8 @@ export class InstantInvitationComponent  {
   }
 
   private onContact ():  void {
-//    this.service.sendOkInvitation(this.invitation);
+//  this.service.sendOkInvitation(this.invitation);
     this.service.sendRemoveInvitation(this.invitation);
     this.service.sendContact(this.invitation);
     }
   }
-
