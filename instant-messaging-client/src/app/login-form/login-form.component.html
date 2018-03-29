@@ -1,14 +1,14 @@
-<mat-card>
-  <mat-toolbar id="bar" layout-align="center center" color="primary">
-    <div class="mat-toolbar-tools">
-       <h2> LOGIN </h2>
-      <span flex></span>
-    </div>
-  </mat-toolbar>
+<div class="group">
   
+<mat-card>
+
+  <mat-toolbar id="titre" layout-align="center center">
+      <h2> LOGIN </h2>
+  </mat-toolbar>
+
   <p> </p>
   
-  <form layout="row"> 
+  <!--<form layout="row"> -->
     <span flex></span>
     <div class="ensemble" layout="column">
       <div>
@@ -26,17 +26,22 @@
       
       <div class="buttonLog">
           <p> </p>
-          <button class="mat-primary mat-raised" (click)="send()"> Valider </button> 
-      </div>
+          <button class="mat-primary mat-raised" (click)="send()"> Valider </button>
+      </div> 
     </div> 
     <span flex></span>
-</form>
-
-<p></p>
-<nav id="foot">
-    <span> Vous n'êtes pas encore inscrit ?</span><p><a routerLink="/subscribe"> Je m'inscris !</a></p>
-    <p> Mot de passe oublié ? </p>
-</nav>
 <!--</form>-->
+
+<nav id="foot">
+    <span id="inscription"> Vous n'êtes pas encore inscrit ?</span><p><a routerLink="/subscribe"> Je m'inscris !</a></p>
+    <span id="inscription"></span><p><a routerLink="/forgottenpassword"> Mot de passe oublié ?</a></p>
+</nav>
+
 </mat-card> 
+
+<mat-button-toggle routerLink="/about">
+    <span id="propos">A propos</span>
+</mat-button-toggle>
+
+</div>
 

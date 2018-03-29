@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 class Client {
-    constructor(server, connection, db) {
+    constructor(server, connection, mail, db) {
         this.server = server;
         this.connection = connection;
+        this.mail = mail;
         this.db = db;
         this.usernameRegex = /^[a-zA-Z0-9]*$/;
         this.username = null;
@@ -20,44 +21,6 @@ class Client {
         connection.on('close', () => server.removeClient(this));
         connection.on('close', () => server.broadcastUsersList());
         connection.on('close', () => server.broadcastUserConnection('disconnection', this.username));
-    }
-    onMessage(utf8Data) {
-        const message = JSON.parse(utf8Data);
-        switch (message.type) {
-            case 'instant_message':
-                this.onInstantMessage(message.data.discussionId, message.data.content, message.data.participants);
-                break;
-            case 'userSubscription':
-                this.onUserSubscription(message.data.username, message.data.password, message.data.mail);
-                break;
-            case 'userLogin':
-                this.onUserLogin(message.data.username, message.data.password);
-                break;
-            case 'invitation':
-                this.onInvitation(message.data);
-                break;
-            case 'removeInvitation':
-                this.removeInvitation(message.data);
-                break;
-            case 'contact':
-                this.onContact(message.data);
-                break;
-            case 'createDiscussion':
-                this.onCreateDiscussion(message.data);
-                break;
-            case 'discussion':
-                this.onFetchDiscussion(message.data);
-                break;
-            case 'addParticipant':
-                this.onAddParticipant(message.data.discussionId, message.data.contactId);
-                break;
-            case 'quitDiscussion':
-                this.onQuitDiscussion(message.data);
-                break;
-            case 'removeContact':
-                this.removeContact(message.data);
-                break;
-        }
     }
     sendMessage(type, data) {
         const message = { type: type, data: data };
@@ -77,6 +40,8 @@ class Client {
             const username = this.username;
             const dataUser = { userId, username };
             this.sendMessage('ownUser', dataUser);
+            yield this.sendDiscussionsList(); // redondant avec onUserLogin
+            yield this.sendContactsList(); // redondant avec onUserLogin
         });
     }
     sendDiscussionsList() {
@@ -154,6 +119,47 @@ class Client {
             yield this.db.deleteInvitationsOrContacts('contacts', this.username, contact);
         });
     }
+    onMessage(utf8Data) {
+        const message = JSON.parse(utf8Data);
+        switch (message.type) {
+            case 'instant_message':
+                this.onInstantMessage(message.data.discussionId, message.data.content, message.data.participants);
+                break;
+            case 'userSubscription':
+                this.onUserSubscription(message.data.username, message.data.password, message.data.mail);
+                break;
+            case 'userLogin':
+                this.onUserLogin(message.data.username, message.data.password);
+                break;
+            case 'invitation':
+                this.onInvitation(message.data);
+                break;
+            case 'removeInvitation':
+                this.removeInvitation(message.data);
+                break;
+            case 'contact':
+                this.onContact(message.data);
+                break;
+            case 'createDiscussion':
+                this.onCreateDiscussion(message.data);
+                break;
+            case 'discussion':
+                this.onFetchDiscussion(message.data);
+                break;
+            case 'addParticipant':
+                this.onAddParticipant(message.data.discussionId, message.data.contactId);
+                break;
+            case 'quitDiscussion':
+                this.onQuitDiscussion(message.data);
+                break;
+            case 'removeContact':
+                this.removeContact(message.data);
+                break;
+            case 'forgottenpassword':
+                this.onPasswordForgotten(message.data);
+                break;
+        }
+    }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
             const i = yield this.db.checkIfUserExists(username);
@@ -200,6 +206,22 @@ class Client {
             }
         });
     }
+    onPasswordForgotten(mail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(mail);
+            const i = yield this.db.checkIfMailExists(mail);
+            console.log(i);
+            if (i === 1) {
+                this.mail.sendMail(mail);
+                console.log("appel méthode envoi mail");
+                return;
+            }
+            else {
+                this.sendMessage('passwordforgotten', 'Adresse mail non reconnue');
+                return;
+            }
+        });
+    }
     onInstantMessage(discussionId, content, participants) {
         if (!(typeof 'content' === 'string'))
             return;
@@ -220,7 +242,7 @@ class Client {
             }
             console.log('invitation dest =' + dest);
             console.log('invitation username =' + this.username);
-            yield this.server.sendFriendInvitationsList(dest);
+            this.server.sendFriendInvitationsList(dest);
         });
     }
     onContact(friend) {
@@ -231,7 +253,7 @@ class Client {
                 yield this.db.addContactsOrInvitationsInUsersCollection("contacts", friend, this.username);
             }
             this.sendContactsList();
-            yield this.server.sendFriendContactsList(friend);
+            this.server.sendFriendContactsList(friend);
         });
     }
     onCreateDiscussion(contactId) {
@@ -241,9 +263,7 @@ class Client {
             this.onFetchDiscussion(id);
             console.log('a chargé la disc ' + id + '; client.ts onCreateDiscussion ' + contactId + ' terminé');
             yield this.db.addDiscussionIdToUser(this.userId, id);
-            console.log('a ajouté la discussion ' + id + ' à ' + this.userId);
             this.server.broadcastCreateDiscussion(contactId, id);
-            console.log('a ajouté la discussion ' + id + ' à ' + contactId);
             this.sendDiscussionsList();
         });
     }
@@ -261,15 +281,17 @@ class Client {
             console.log('client.ts ajout participant a la discussion ' + id);
             yield this.db.addDiscussionIdToUser(contactId, id);
             yield this.db.addParticipantInDiscussion(id, contactId);
-            this.server.broadcastFetchDiscussion(id);
+            this.sendDiscussionsList();
+            this.server.broadcastUpdateDiscussionList(contactId, id);
         });
     }
     onQuitDiscussion(id) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log(this.userId + 'quitte discussion' + id);
-            yield this.db.deleteParticipantFromDiscussion(this.userId, id);
-            yield this.db.deleteDiscussionFromUser(id, this.userId);
-            this.server.broadcastFetchDiscussion(id);
+            yield this.db.deleteParticipantFromDiscussion(id, this.userId);
+            yield this.db.deleteDiscussionFromUser(this.userId, id);
+            this.sendDiscussionsList();
+            this.server.broadcastUpdateDiscussionList(this.userId, id);
         });
     }
     getUserName() {

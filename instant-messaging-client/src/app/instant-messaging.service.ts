@@ -8,28 +8,22 @@ import { DiscussionParticipantsIds } from './discussion-participants-ids';
 import { User } from './user';
 import { UserIdAndName } from './user-id-and-name';
 
+
 @Injectable()
 export class InstantMessagingService {
   private user: User;
-  private connectedUsers: string [] = []; // liste des utilisateurs connectés
+  private users: string [] = []; // liste des utilisateurs connectés
   private socket: WebSocket;
   private logged: boolean;
   private errorMessage: string;
-  private invitations: string [] = [];
+  private invitations: string[] = [];
   private invitationsList: string [] = [];
-  private contacts: UserIdAndName [] = [];
-  private discussionsList: string []; // liste des numéros de discussion
+  private contacts: UserIdAndName[] = [];
+  private discussionsList: string[]; // liste des numéros de discussion
   private discussionsListName: DiscussionParticipantsNames[] = []; // liste des numéros de discussion + nom des participants
   private discussionsListId: DiscussionParticipantsIds[] = []; // liste des numéros de discussion + id des participants
   private currentDiscussion: Discussion;
   private messages: InstantMessage[] = []; // peut être attribut de currentDiscussion, attention au départ
-
-
-  public constructor(private routing: RoutingService) {
-    this.logged = false;
-    this.socket = new WebSocket('ws:/localhost:4201');
-    this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
-  }
 
   public askDiscussion(contactId: string) {
     let nbDiscussions = this.discussionsListId.length;
@@ -66,8 +60,8 @@ export class InstantMessagingService {
   }
 
   private onUserStatusChange(userslist: string []) {
-    this.connectedUsers = userslist;
-    console.log(this.connectedUsers);
+    this.users = userslist;
+    console.log(this.users);
   }
 
   private onOwnUser(user: User) {
@@ -110,20 +104,29 @@ export class InstantMessagingService {
   }
 
   private onConnection(username: string) {
-    this.messages.push(new InstantMessage(username + ' vient de se connecter à la messagerie', 'Message Automatique', new Date()));
+    this.messages.push(new InstantMessage(username + ' vient de rejoindre la conversation', 'Message Automatique', new Date()));
   }
 
   private onDisconnection(username: string) {
-    this.messages.push(new InstantMessage(username + ' vient de quitter la messagerie', 'Message Automatique', new Date()));
+    this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
   }
 
   private onInvitation(invitation: string[]) {
+    console.log(this.invitations);
+     this.invitations.push(invitation[1]);
      console.log(this.invitations);
-      this.invitations.push(invitation[1]);
-      console.log(this.invitations);
-  }
+ }
 
- private onSubscription(state: string) {
+ private onLogin(state: string) {
+  if (state === 'ok') {
+    this.logged = true;
+    } else {
+    this.errorMessage = state;
+    this.routing.goError();
+  }
+}
+
+private onSubscription(state: string) {
   if ( state === 'ok') {
     this.routing.goLogin();
   } else if (state === 'Pseudo déjà utilisé') {
@@ -133,15 +136,6 @@ export class InstantMessagingService {
     this.errorMessage = state;
     this.routing.goError();
   } else {
-    this.routing.goError();
-  }
-}
-
-private onLogin(state: string) {
-  if (state === 'ok') {
-    this.logged = true;
-    } else {
-    this.errorMessage = state;
     this.routing.goError();
   }
 }
@@ -163,8 +157,15 @@ private onLogin(state: string) {
     }
   }
 
-  public isLogged(): boolean {
-    return (this.logged);
+  public constructor(private routing: RoutingService) {
+    this.logged = false;
+    this.socket = new WebSocket('ws:/localhost:4201');
+    this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
+  }
+
+  public removeInvitation(invitation: string) {
+    const index = this.invitations.indexOf(invitation);
+    this.invitations.splice(index, 1);
   }
 
   public getMessages(): InstantMessage[] {
@@ -172,7 +173,7 @@ private onLogin(state: string) {
   }
 
   public getUsers(): string[] {
-    return this.connectedUsers;
+    return this.users;
   }
 
   public getErrorMessage(): string {
@@ -238,13 +239,23 @@ private onLogin(state: string) {
     this.invitations.splice(index, 1);
   }
 
-  public sendAddParticipant(contact: string) {
-    const addParticipant = {id: this.currentDiscussion.id, contact: contact};
+  public sendAddParticipant(contactId: string) {
+    console.log('ajoute à discussion ' + this.currentDiscussion.id + ' lecontact ' + contactId)
+    const addParticipant = {id: this.currentDiscussion.id, contact: contactId};
     this.sendMessage('addParticipant', addParticipant);
   }
 
   public sendQuitDiscussion(id: string) {
     this.sendMessage('quitDiscussion', id);
+  }
+
+  public isLogged(): boolean {
+    return (this.logged);
+  }
+
+  public unLog() {
+    this.logged = false;
+    this.routing.goLogin();
   }
 
   public sendLogin(username: string, password: string) {
@@ -253,5 +264,9 @@ private onLogin(state: string) {
 
   public sendSubscription(username: string, password: string, mail: string) {
     this.sendMessage('userSubscription', {username: username, password: password, mail: mail});
+  }
+
+  public sendMail(mail: string) {
+    this.sendMessage('forgottenpassword', mail);
   }
 }

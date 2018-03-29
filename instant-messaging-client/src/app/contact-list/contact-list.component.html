@@ -8,9 +8,11 @@
           {{contact.username}}
           </mat-button-toggle>
 
-          <button class="addP" (click)="addParticipant(discussion.id)">
+          <button class="addP" (click)="addParticipant(contact.userId)">
               <mat-icon id="addParticipant">add</mat-icon> 
           </button>
+
+          <mat-divider [inset]=true></mat-divider>
 
       </mat-button-toggle-group>
 
