@@ -11,6 +11,9 @@
           <button class="addP" (click)="addParticipant(contact.userId)">
               <mat-icon id="addParticipant">add</mat-icon> 
           </button>
+          <button class="supp" (click)="deleteContact(contact.username)">
+            <mat-icon matListIcon id="corbeille"> delete </mat-icon> 
+          </button>
 
           <mat-divider [inset]=true></mat-divider>
 

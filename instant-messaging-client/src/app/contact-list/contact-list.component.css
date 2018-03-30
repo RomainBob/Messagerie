@@ -50,3 +50,10 @@ button {
   visibility: hidden;
   border: none;
 }
+
+mat-button-toggle-group:hover #corbeille {
+  color: white;
+  visibility: visible;
+  background-color: #328CC1;
+  border: none;
+}

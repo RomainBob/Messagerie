@@ -114,9 +114,10 @@ class Client {
     }
     removeContact(contact) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.sendMessage('removeContact', contact);
-            yield this.db.deleteInvitationsOrContacts('contacts', contact, this.username);
-            yield this.db.deleteInvitationsOrContacts('contacts', this.username, contact);
+            yield this.db.deleteInvitationsOrContacts('contact', contact, this.username);
+            yield this.db.deleteInvitationsOrContacts('contact', this.username, contact);
+            this.sendContactsList();
+            this.server.sendFriendContactsList(contact);
         });
     }
     onMessage(utf8Data) {

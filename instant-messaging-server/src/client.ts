@@ -108,9 +108,10 @@ export class Client {
     }
 
     async removeContact(contact){
-        this.sendMessage('removeContact', contact);
-        await this.db.deleteInvitationsOrContacts ('contacts', contact, this.username);
-        await this.db.deleteInvitationsOrContacts ('contacts', this.username, contact);
+        await this.db.deleteInvitationsOrContacts ('contact', contact, this.username);
+        await this.db.deleteInvitationsOrContacts ('contact', this.username, contact);
+        this.sendContactsList();
+        this.server.sendFriendContactsList(contact);
     }
 
     private onMessage(utf8Data: string): void {

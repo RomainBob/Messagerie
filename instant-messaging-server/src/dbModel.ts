@@ -88,14 +88,6 @@ export class DbModel {
         }        
     }
 
-
-    //async addInvitationsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
-        //const iDSender = await this.getUserId(usernameSender);
-        //const iDReceiver = await this.getUserId(usernameReceiver);
-        //await this.database.collection('users')
-        //.update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
-    //}
-
     async getContactUser (username: string): Promise<any> {
         const contact =  await this.database.collection('users').find({username:username}).toArray();
         return contact[0].contacts;

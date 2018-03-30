@@ -98,12 +98,6 @@ class DbModel {
             }
         });
     }
-    //async addInvitationsInUsersCollection (usernameSender: string, usernameReceiver: string): Promise<void> {
-    //const iDSender = await this.getUserId(usernameSender);
-    //const iDReceiver = await this.getUserId(usernameReceiver);
-    //await this.database.collection('users')
-    //.update({_id : iDSender}, {$push: {invitations:{idUser: iDReceiver}}});
-    //}
     getContactUser(username) {
         return __awaiter(this, void 0, void 0, function* () {
             const contact = yield this.database.collection('users').find({ username: username }).toArray();
