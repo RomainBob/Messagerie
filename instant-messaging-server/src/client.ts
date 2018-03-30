@@ -131,9 +131,13 @@ export class Client {
             case 'quitDiscussion': this.onQuitDiscussion(message.data); break;
             case 'removeContact': this.removeContact(message.data); break;
             case 'forgottenpassword': this.onPasswordForgotten(message.data); break;
+            case 'disconnection': this.onDisconnection(message.data); break;
        }
     }
 
+    async onDisconnection(username){
+        this.server.broadcastUserConnection('disconnection',username);
+    }
     async onUserLogin(username, password) {
         const i = await this.db.checkIfUserExists(username);
         if (i === 1 ){ 

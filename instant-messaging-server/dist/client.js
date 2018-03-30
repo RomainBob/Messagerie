@@ -161,7 +161,15 @@ class Client {
             case 'forgottenpassword':
                 this.onPasswordForgotten(message.data);
                 break;
+            case 'disconnection':
+                this.onDisconnection(message.data);
+                break;
         }
+    }
+    onDisconnection(username) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.server.broadcastUserConnection('disconnection', username);
+        });
     }
     onUserLogin(username, password) {
         return __awaiter(this, void 0, void 0, function* () {

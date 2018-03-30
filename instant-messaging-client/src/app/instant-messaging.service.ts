@@ -106,12 +106,22 @@ export class InstantMessagingService {
   }
 
   private onConnection(username: string) {
-    this.messages.push(new InstantMessage(username + ' vient de rejoindre la conversation', 'Message Automatique', new Date()));
+    console.log('onConnection.....service = ' + this.isConnectedUser(username));
+    // this.messages.push(new InstantMessage(username + ' vient de rejoindre la conversation', 'Message Automatique', new Date()));
   }
 
   private onDisconnection(username: string) {
-    this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
+    console.log('onDisconnection.....service = ' + this.users);
+    const index = this.users.indexOf(username);
+    this.users.splice(index, 1);
+    console.log('onDisconnection.....service 2 = ' + this.users);
+    // this.messages.push(new InstantMessage(username + ' vient de quitter la conversation', 'Message Automatique', new Date()));
   }
+
+  public isConnectedUser(username: string): boolean {
+    return this.users.includes(username);
+  }
+
 
   private onInvitation(invitation: string[]) {
     console.log(this.invitations);
@@ -273,6 +283,7 @@ private onSubscription(state: string) {
   public unLog() {
     this.logged = false;
     this.routing.goLogin();
+    this.sendMessage('disconnection', this.user.username);
   }
 
   public sendLogin(username: string, password: string) {

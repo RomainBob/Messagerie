@@ -56,3 +56,28 @@ mat-button-toggle-group:hover #corbeille {
   background-color: #328CC1;
   border: none;
 }
+
+#connected {
+
+  color: rgb(10, 172, 37);
+  
+  visibility: visible;
+  
+  background-color: transparent;
+  
+  border: none;
+  
+  }
+
+  
+  #disconnected {
+  
+  color: rgb(247, 15, 15);
+  
+  visibility: visible;
+  
+  background-color: transparent;
+  
+  border: none;
+  
+  }
