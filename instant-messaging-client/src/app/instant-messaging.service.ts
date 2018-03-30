@@ -24,6 +24,8 @@ export class InstantMessagingService {
   private discussionsListId: DiscussionParticipantsIds[] = []; // liste des numéros de discussion + id des participants
   private currentDiscussion: Discussion;
   private messages: InstantMessage[] = []; // peut être attribut de currentDiscussion, attention au départ
+  private welcome: Discussion = {id: '0', participants: [],
+  history: [new InstantMessage('Sélectionnez un contact ou une discussion', null, null)]};
 
   public askDiscussion(contactId: string) {
     let nbDiscussions = this.discussionsListId.length;
@@ -161,6 +163,8 @@ private onSubscription(state: string) {
     this.logged = false;
     this.socket = new WebSocket('ws:/localhost:4201');
     this.socket.onmessage = (event: MessageEvent) => this.onMessage(event.data);
+    this.currentDiscussion = this.welcome;
+
   }
 
   public removeInvitation(invitation: string) {
@@ -194,6 +198,18 @@ private onSubscription(state: string) {
 
    public getDiscussionsListName(): DiscussionParticipantsNames[] {
     return this.discussionsListName;
+  }
+
+  public getCurrentDiscussionParticipantsNames(): string[] {
+    for (const list of this.discussionsListName) {
+      if (list.id === this.currentDiscussion.id) {
+        const clonedlist = list.participantsName.slice();
+        const index = clonedlist.indexOf(this.user.username);
+        // if (index !== -1) {clonedlist.splice(index, 1)};  pas un bon clone
+        return clonedlist;
+      }
+    }
+    return ['Sélectionnez une discussion'];
   }
 
   public sendMessage(type: string, data: any) {
@@ -241,12 +257,13 @@ private onSubscription(state: string) {
 
   public sendAddParticipant(contactId: string) {
     console.log('ajoute à discussion ' + this.currentDiscussion.id + ' lecontact ' + contactId)
-    const addParticipant = {id: this.currentDiscussion.id, contact: contactId};
+    const addParticipant = {id: this.currentDiscussion.id, contactId: contactId};
     this.sendMessage('addParticipant', addParticipant);
   }
 
   public sendQuitDiscussion(id: string) {
     this.sendMessage('quitDiscussion', id);
+    this.currentDiscussion = this.welcome;
   }
 
   public isLogged(): boolean {

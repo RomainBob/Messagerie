@@ -153,8 +153,7 @@ class DbModel {
     }
     addDiscussionIdToUser(userId, id_discussion) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.database.collection('users')
-                .update({ _id: userId }, { $push: { id_discussion: { id: id_discussion } } });
+            yield this.database.collection('users').update({ _id: userId }, { $push: { id_discussion: { id: id_discussion } } });
         });
     }
     deleteDiscussionFromUser(userId, id_discussion) {

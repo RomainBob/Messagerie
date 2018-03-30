@@ -65,7 +65,7 @@ class Server {
             }
         });
     }
-    broadcastUpdateDiscussionList(userId, discussionId) {
+    broadcastUpdateDiscussionList(discussionId) {
         return __awaiter(this, void 0, void 0, function* () {
             const participants = yield this.db.getParticipants(discussionId);
             for (const client of this.clients) {

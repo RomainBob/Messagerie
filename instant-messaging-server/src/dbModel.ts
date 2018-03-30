@@ -136,8 +136,7 @@ export class DbModel {
     }
 
     async addDiscussionIdToUser(userId: string, id_discussion: string): Promise<void> {
-        await this.database.collection('users')
-        .update({_id : userId}, {$push: {id_discussion:{id: id_discussion}}});
+        await this.database.collection('users').update({_id : userId}, {$push: {id_discussion:{id: id_discussion}}});
     }
 
     async deleteDiscussionFromUser(userId, id_discussion: string):Promise <void> {

@@ -49,9 +49,11 @@ export class Client {
             const participantsComplet = await this.db.getParticipants(id);// toute l'info user
             for (let i = 0; i < participantsComplet.length; i++){
                 const userId = participantsComplet[i];
-                const username = await this.db.getUsername(userId);
-                console.log('on ajoute participant = '+ userId +' de nom = '+username + ' discussion = '+id);
-                participants.push({userId, username});
+                if (userId != null) {  // RUSTINE
+                    const username = await this.db.getUsername(userId);
+                    console.log('on ajoute participant = '+ userId +' de nom = '+username + ' discussion = '+id);
+                    participants.push({userId, username});
+                }
             }
             discussionsList.push({id, participants});
         }
@@ -125,7 +127,7 @@ export class Client {
             case 'contact': this.onContact(message.data); break;
             case 'createDiscussion': this.onCreateDiscussion(message.data); break;
             case 'discussion': this.onFetchDiscussion(message.data); break;
-            case 'addParticipant': this.onAddParticipant(message.data.discussionId, message.data.contactId); break;  
+            case 'addParticipant': this.onAddParticipant(message.data.id, message.data.contactId); break;  
             case 'quitDiscussion': this.onQuitDiscussion(message.data); break;
             case 'removeContact': this.removeContact(message.data); break;
             case 'forgottenpassword': this.onPasswordForgotten(message.data); break;
@@ -237,13 +239,13 @@ export class Client {
         const discussion = {id, participants, history};
         this.sendMessage('discussion', discussion);
     }
-
+ 
     async onAddParticipant(id: string, contactId: string) {
-        console.log('client.ts ajout participant a la discussion ' + id);
+        console.log('client.ts ajout participant '+ contactId +' a la discussion ' + id);
         await this.db.addDiscussionIdToUser(contactId, id);
         await this.db.addParticipantInDiscussion(id, contactId);
         this.sendDiscussionsList();
-        this.server.broadcastUpdateDiscussionList(contactId, id);
+        this.server.broadcastUpdateDiscussionList(id);
     }
 
     async onQuitDiscussion(id: string) {
@@ -251,7 +253,7 @@ export class Client {
         await this.db.deleteParticipantFromDiscussion(id, this.userId);
         await this.db.deleteDiscussionFromUser(this.userId, id);
         this.sendDiscussionsList();
-        this.server.broadcastUpdateDiscussionList(this.userId, id);
+        this.server.broadcastUpdateDiscussionList(id);
     }
 
     public getUserName(){
