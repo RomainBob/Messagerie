@@ -220,10 +220,21 @@ export class DbModel {
         }
     }
 
-    async changePassword(mail, password: string): Promise <void> {
+    async changePasswordFromMail(mail, password: string): Promise <void> {
         const userId = await this.getUserIdFromMail(mail);
         const hash = await this.hashPassword(password);
         await this.database.collection('users').update({_id : userId}, {$set: {password:hash}});
+    }
+
+    async changePasswordFromUsername(username: string, password: string): Promise <void> {
+        const userId = await this.getUserId(username);
+        const hash = await this.hashPassword(password);
+        await this.database.collection('users').update({_id : userId}, {$set: {password:hash}});
+    }
+
+    async changeUsername(oldUsername, newUsername): Promise <void> {
+        const userId = await this.getUserId(oldUsername)
+        await this.database.collection('users').update({_id : userId}, {$set: {username: newUsername}});
     }
 
     async getUserIdFromMail (mail: string): Promise<string>{

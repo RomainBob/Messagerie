@@ -132,6 +132,8 @@ export class Client {
             case 'removeContact': this.removeContact(message.data); break;
             case 'forgottenpassword': this.onPasswordForgotten(message.data); break;
             case 'disconnection': this.onDisconnection(message.data); break;
+            case 'newUsername': this.onNewUsername(message.data); break;
+            case 'newPassword': this.onNewPassword(message.data); break;
        }
     }
 
@@ -189,6 +191,31 @@ export class Client {
             return; 
         } else {
             this.sendMessage('passwordforgotten', 'Adresse mail non reconnue');
+            return;
+        }     
+    }
+
+    async onNewUsername({oldUsername: oldUsername, newUsername: newUsername}) {
+        const i = await this.db.checkIfUserExists(newUsername);
+        console.log(i);
+        if (i === 1 ){ 
+            this.sendMessage('newUserNameAlreadyUsed', 'Pseudo déjà utilisé ');
+            return;
+        } else {
+            await this.db.changeUsername(oldUsername, newUsername);
+            this.sendMessage('onNewUsername', newUsername);
+            return;
+        }     
+    }
+
+    async onNewPassword({username: username, oldPassword: oldPassword, newPassword: newPassword}) {
+        const verifyPassword = await this.db.verifyPasswordWithHashCode (username, oldPassword);  
+        if (!verifyPassword){
+            this.sendMessage('statePassword', 'Mot de passe incorrect ');
+            return;
+        } else {
+            this.db.changePasswordFromUsername(username, newPassword);
+            this.sendMessage('statePassword', 'Mot de passe modifié');
             return;
         }     
     }

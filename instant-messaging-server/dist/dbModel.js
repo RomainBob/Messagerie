@@ -251,11 +251,24 @@ class DbModel {
             }
         });
     }
-    changePassword(mail, password) {
+    changePasswordFromMail(mail, password) {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = yield this.getUserIdFromMail(mail);
             const hash = yield this.hashPassword(password);
             yield this.database.collection('users').update({ _id: userId }, { $set: { password: hash } });
+        });
+    }
+    changePasswordFromUsername(username, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = yield this.getUserId(username);
+            const hash = yield this.hashPassword(password);
+            yield this.database.collection('users').update({ _id: userId }, { $set: { password: hash } });
+        });
+    }
+    changeUsername(oldUsername, newUsername) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = yield this.getUserId(oldUsername);
+            yield this.database.collection('users').update({ _id: userId }, { $set: { username: newUsername } });
         });
     }
     getUserIdFromMail(mail) {

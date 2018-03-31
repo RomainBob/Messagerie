@@ -138,6 +138,11 @@ export class InstantMessagingService {
   }
 }
 
+private onNewUsername(username: string) {
+  this.user.username = username;
+  this.routing.goChat();
+}
+
 private onSubscription(state: string) {
   if ( state === 'ok') {
     this.routing.goLogin();
@@ -148,6 +153,20 @@ private onSubscription(state: string) {
     this.errorMessage = state;
     this.routing.goError();
   } else {
+    this.routing.goError();
+  }
+}
+
+private onNewUsernameAlreadyUsed(errorMessage: string) {
+    this.errorMessage = errorMessage;
+    this.routing.goError();
+}
+
+private onStatePassword(state: string) {
+  if ( state === 'Mot de passe modifié') {
+    this.routing.goChat();
+  } else {
+    this.errorMessage = state;
     this.routing.goError();
   }
 }
@@ -166,6 +185,9 @@ private onSubscription(state: string) {
       case 'discussionsList': this.onDiscussionList(message.data); break;
       case 'contactsList': this.onContactsList(message.data); break;
       case 'invitationsList': this.onInvitationsList(message.data); break;
+      case 'onNewUsername': this.onNewUsername(message.data); break;
+      case 'newUserNameAlreadyUsed': this.onNewUsernameAlreadyUsed(message.data); break;
+      case 'statePassword': this.onStatePassword(message.data); break;
     }
   }
 
@@ -296,5 +318,13 @@ private onSubscription(state: string) {
 
   public sendMail(mail: string) {
     this.sendMessage('forgottenpassword', mail);
+  }
+
+  public sendNewUsername(newUsername: string) {
+    this.sendMessage('newUsername', {oldUsername: this.user.username, newUsername: newUsername});
+  }
+
+  public sendNewPassword(oldPassword: string, newPassword: string) {
+    this.sendMessage('newPassword', {username: this.user.username, oldPassword: oldPassword, newPassword: newPassword});
   }
 }
