@@ -17,6 +17,7 @@ class Client {
         this.usernameRegex = /^[a-zA-Z0-9]*$/;
         this.username = null;
         this.userId = null;
+        this.currentDiscussion = null;
         connection.on('message', (message) => this.onMessage(message.utf8Data));
         connection.on('close', () => server.removeClient(this));
         connection.on('close', () => server.broadcastUsersList());
@@ -40,12 +41,14 @@ class Client {
             const username = this.username;
             const dataUser = { userId, username };
             this.sendMessage('ownUser', dataUser);
-            yield this.sendDiscussionsList(); // redondant avec onUserLogin
-            yield this.sendContactsList(); // redondant avec onUserLogin
+            // await this.sendDiscussionsList(); // redondant avec onUserLogin
+            // await this.sendContactsList(); // redondant avec onUserLogin
         });
     }
     sendDiscussionsList() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("entree dans this.sendDiscussionsList");
+            console.log(this.username);
             const discussions = yield this.db.getElementsFromUser('id_discussion', this.username);
             const discussionsList = [];
             for (let i = 0; i < discussions.length; i++) {
@@ -62,7 +65,9 @@ class Client {
                 }
                 discussionsList.push({ id, participants });
             }
-            console.log('discussionsList' + discussionsList);
+            ;
+            console.log('discussionsList');
+            console.log(discussionsList);
             this.sendMessage('discussionsList', discussionsList);
         });
     }
@@ -249,7 +254,10 @@ class Client {
             }
             else {
                 yield this.db.changeUsername(oldUsername, newUsername);
+                this.username = newUsername;
                 this.sendMessage('onNewUsername', newUsername);
+                this.server.sendFriendsContactsList(newUsername);
+                this.server.broadcastDiscussionsListOnNewName(this.userId); /// CE QUE J AI AJOUTE
                 return;
             }
         });
@@ -320,6 +328,13 @@ class Client {
             const history = yield this.db.getHistory(id);
             const discussion = { id, participants, history };
             this.sendMessage('discussion', discussion);
+        });
+    }
+    onFetchDiscussionCondition(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('client.ts on entre dans la fonction onFetchDiscussionCondition ' + id);
+            if (this.currentDiscussion == id)
+                this.onFetchDiscussion(id);
         });
     }
     onAddParticipant(id, contactId) {

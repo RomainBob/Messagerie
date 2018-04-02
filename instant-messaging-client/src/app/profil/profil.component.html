@@ -14,17 +14,17 @@
 
   <div class="nomUtilisateur">
     <input name="log" placeholder="Nouveau nom d'utilisateur" [(ngModel)]="newUsername" class="login-input" type="text">
-    <button id="val" (click)="changeUsername()"> Modifier le nom d'utilisateur  </button> 
+    <button id="val1" (click)="changeUsername()"> Modifier le nom d'utilisateur  </button> 
   </div>
 
   <div class="motPasse">
     <input name="log" placeholder="Ancien mot de passe" [(ngModel)]="oldPassword" class="login-input" type="password">
     <input name="log" placeholder="Nouveau mot de passe" [(ngModel)]="newPassword" class="login-input" type="password">
-    <button id="val" (click)="changePassword()"> Modifier le mot de passe  </button>
+    <button id="val2" (click)="changePassword()"> Modifier le mot de passe  </button>
   </div>  
 
 <div>
   <br>
-  <button id="val" (click)="goBack()"> Annuler  </button>
+  <button id="val3" (click)="goBack()"> Annuler  </button>
 </div>
 </form>

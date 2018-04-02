@@ -5,13 +5,12 @@ import { Discussion } from './discussion';
 import { DiscussionsListItem } from './discussions-list-item';
 import { DiscussionParticipantsNames } from './discussion-participants-names';
 import { DiscussionParticipantsIds } from './discussion-participants-ids';
-import { User } from './user';
 import { UserIdAndName } from './user-id-and-name';
 
 
 @Injectable()
 export class InstantMessagingService {
-  private user: User;
+  private user: UserIdAndName;
   private users: string [] = []; // liste des utilisateurs connectés
   private socket: WebSocket;
   private logged: boolean;
@@ -19,7 +18,7 @@ export class InstantMessagingService {
   private invitations: string[] = [];
   private invitationsList: string [] = [];
   private contacts: UserIdAndName[] = [];
-  private discussionsList: string[]; // liste des numéros de discussion
+  // private discussionsList: string[]; // liste des numéros de discussion
   private discussionsListName: DiscussionParticipantsNames[] = []; // liste des numéros de discussion + nom des participants
   private discussionsListId: DiscussionParticipantsIds[] = []; // liste des numéros de discussion + id des participants
   private currentDiscussion: Discussion;
@@ -66,7 +65,7 @@ export class InstantMessagingService {
     console.log(this.users);
   }
 
-  private onOwnUser(user: User) {
+  private onOwnUser(user: UserIdAndName) {
     this.user = user;
     this.routing.goChat();
     console.log(this.user);
@@ -232,16 +231,17 @@ private onStatePassword(state: string) {
     return this.discussionsListName;
   }
 
+   public isValidCurrentDiscussion() {
+     return (this.currentDiscussion.id !== '0');
+   }
+
   public getCurrentDiscussionParticipantsNames(): string[] {
     for (const list of this.discussionsListName) {
       if (list.id === this.currentDiscussion.id) {
-        const clonedlist = list.participantsName.slice();
-        const index = clonedlist.indexOf(this.user.username);
-        // if (index !== -1) {clonedlist.splice(index, 1)};  pas un bon clone
-        return clonedlist;
+        return list.participantsName;
       }
     }
-    return ['Sélectionnez une discussion'];
+    return ['Sélectionnez un contact ou une discussion'];
   }
 
   public sendMessage(type: string, data: any) {

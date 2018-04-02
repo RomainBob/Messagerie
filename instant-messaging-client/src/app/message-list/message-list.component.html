@@ -3,4 +3,5 @@
                 [message]="message"></app-instant-message>
 </div>
 
-<app-new-message-form></app-new-message-form>
+ <div *ngIf="service.isValidCurrentDiscussion()">
+  <app-new-message-form></app-new-message-form>

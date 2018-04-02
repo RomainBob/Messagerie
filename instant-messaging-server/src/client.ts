@@ -7,6 +7,7 @@ export class Client {
     private usernameRegex = /^[a-zA-Z0-9]*$/;
     private username: string = null;
     private userId: string = null;
+    private currentDiscussion: string = null;
 
     public constructor(private server: Server, private connection: WebSocketConnection,  private mail:Mail, private db: DbModel) {
         connection.on('message', (message)=>this.onMessage(message.utf8Data));
@@ -35,11 +36,13 @@ export class Client {
         const username = this.username;
         const dataUser = {userId, username};
         this.sendMessage('ownUser', dataUser);
-        await this.sendDiscussionsList(); // redondant avec onUserLogin
-        await this.sendContactsList(); // redondant avec onUserLogin
+        // await this.sendDiscussionsList(); // redondant avec onUserLogin
+        // await this.sendContactsList(); // redondant avec onUserLogin
     }
 
     async sendDiscussionsList(){
+        console.log("entree dans this.sendDiscussionsList");
+        console.log(this.username);
         const discussions = 
         await this.db.getElementsFromUser('id_discussion', this.username);
         const discussionsList: any[] =[];
@@ -56,8 +59,9 @@ export class Client {
                 }
             }
             discussionsList.push({id, participants});
-        }
-        console.log('discussionsList'+ discussionsList);
+        };
+        console.log('discussionsList');
+        console.log(discussionsList);
         this.sendMessage('discussionsList', discussionsList);
     }
 
@@ -203,7 +207,10 @@ export class Client {
             return;
         } else {
             await this.db.changeUsername(oldUsername, newUsername);
+            this.username = newUsername;
             this.sendMessage('onNewUsername', newUsername);
+            this.server.sendFriendsContactsList(newUsername);
+            this.server.broadcastDiscussionsListOnNewName(this.userId); /// CE QUE J AI AJOUTE
             return;
         }     
     }
@@ -269,6 +276,12 @@ export class Client {
         const history = await this.db.getHistory(id);        
         const discussion = {id, participants, history};
         this.sendMessage('discussion', discussion);
+    }
+
+    async onFetchDiscussionCondition(id: string) {
+        console.log('client.ts on entre dans la fonction onFetchDiscussionCondition ' + id );
+        if (this.currentDiscussion == id) 
+            this.onFetchDiscussion(id);
     }
  
     async onAddParticipant(id: string, contactId: string) {
